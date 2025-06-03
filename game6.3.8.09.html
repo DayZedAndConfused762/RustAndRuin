@@ -1,0 +1,2243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thornyvale: Rust and Ruin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles to override/enhance Tailwind for game atmosphere */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #2a2b27; /* Very dark desaturated green/brown for overgrown feel */
+            color: #c0c0b0; /* Muted off-white for readability */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        .game-container {
+            background-color: #3c3d38; /* Slightly lighter desaturated green/brown for container */
+            border: 2px solid #555650; /* Darker, muted border */
+            border-radius: 12px; /* Rounded corners for the main container */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5), 0 0 30px 5px rgba(0, 100, 0, 0.8); /* Enhanced dark green shadow */
+            max-width: 1200px; /* Increased max width for desktop (was 900px) */
+            width: 100%;
+            min-height: 95vh; /* Made the overall card taller */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Ensure rounded corners clip content */
+        }
+
+        .header-stats, .save-button-container {
+            padding: 1rem;
+            border-bottom: 1px solid #444540; /* Darker separator */
+        }
+
+        .header-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: space-around;
+            background-color: #4a4b45; /* Darker header */
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .stat-item {
+            font-weight: bold;
+            color: #909080; /* Muted grey-green for labels */
+        }
+
+        .stat-value {
+            color: #d0d0c0; /* Slightly brighter muted off-white for values */
+            font-weight: normal;
+        }
+
+        /* New layout for main content: actions, log, inventory */
+        .main-content-area {
+            display: flex;
+            flex-direction: row; /* Side-by-side on larger screens */
+            flex-grow: 1; /* Allow content to grow */
+            padding: 1rem;
+            gap: 1rem; /* Space between cards */
+            background-color: #3c3d38; /* Matches container background */
+        }
+
+        .card {
+            background-color: #4a4b45; /* Card background */
+            border: 1px solid #555650; /* Card border */
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Specific flex values for card widths */
+        .actions-card, .inventory-card {
+            flex: 0.7; /* Make these narrower */
+        }
+
+        .game-log-card {
+            flex: 1.6; /* Make the log wider */
+            min-height: 400px; /* Increased height for the log */
+            max-height: 400px; /* Ensure it doesn't grow beyond this */
+            overflow-y: auto; /* Scrollable */
+            background-color: #343530; /* Darker background for log */
+            white-space: pre-wrap; /* Preserve whitespace and wrap text */
+            word-wrap: break-word; /* Break long words */
+            line-height: 1.4;
+            font-size: 0.95rem;
+            color: #c8c8c0; /* Muted text for default log messages */
+            display: flex; /* Use flexbox for log messages */
+            flex-direction: column-reverse; /* Newest messages at the top */
+        }
+
+        /* Specific log message colors */
+        .log-message.warning {
+            color: #d97706; /* Tailwind orange-600, rusty orange */
+        }
+        .log-message.gain {
+            color: #65a30d; /* Tailwind lime-600, muted green */
+        }
+        .log-message.loss {
+            color: #a16207; /* Tailwind amber-700, darker muted brown */
+        }
+        .log-message.new-day {
+            color: #facc15; /* Tailwind yellow-400, subtle yellow-brown */
+            font-weight: bold;
+        }
+        .log-message.atmospheric {
+            color: #9ca3af; /* Tailwind gray-400, slightly lighter muted gray */
+            font-style: italic;
+        }
+
+
+        .card-title {
+            font-weight: bold;
+            color: #d0d0c0;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1.1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #555650;
+        }
+
+        .log-message {
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed rgba(192, 192, 176, 0.1); /* Muted, transparent dash */
+            flex-shrink: 0; /* Prevent messages from shrinking */
+        }
+
+        .log-message:last-child { /* This will now be the oldest message due to flex-direction: column-reverse */
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Smaller buttons for card */
+            gap: 0.75rem;
+            flex-grow: 1; /* Allow buttons to push content down if needed */
+            align-content: flex-start; /* Align buttons to the top */
+        }
+
+        .action-buttons button {
+            background-color: #8b4513; /* SaddleBrown - a rusty brown */
+            color: white;
+            padding: 0.75rem 1rem; /* Slightly smaller padding */
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            font-size: 0.9rem; /* Slightly smaller font for buttons */
+        }
+
+        .action-buttons button:hover:not(:disabled) {
+            background-color: #a0522d; /* Sienna - lighter rust on hover */
+            transform: translateY(-2px);
+        }
+
+        .action-buttons button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-buttons button:disabled {
+            background-color: #4b5563; /* Darker muted grey-green for disabled */
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+            pointer-events: none; /* Crucial for disabling clicks */
+        }
+
+        .button-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-bar-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: rgba(139, 69, 19, 0.6); /* More visible fill color */
+            width: 0%;
+            transition: width 0.1s linear;
+            z-index: 0;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05)); /* Subtle texture */
+        }
+
+        /* Inventory Item Styling */
+        .resource-display {
+            display: flex; /* Use flex for vertical stacking of groups */
+            flex-direction: column;
+            gap: 1rem; /* Space between groups */
+            flex-grow: 1;
+        }
+
+        .resource-group {
+            border: 1px solid #555650;
+            border-radius: 6px;
+            padding: 0.75rem;
+            background-color: #42433e; /* Slightly different background for groups */
+        }
+
+        .resource-group-title {
+            font-weight: bold;
+            color: #d0d0c0;
+            margin-bottom: 0.75rem;
+            text-align: center;
+            font-size: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed rgba(192, 192, 176, 0.1);
+        }
+
+        .resource-group-items {
+            display: grid;
+            grid-template-columns: 1fr; /* Stack items vertically within group */
+            gap: 0.5rem;
+        }
+
+        .resource-item {
+            background-color: #5a5b56; /* Standard background for all inventory items */
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            text-align: left;
+            font-size: 0.9rem;
+            color: #c0c0b0;
+            position: relative; /* Keep for progress bar */
+            overflow: hidden; /* Keep for progress bar */
+            /* Add a subtle background for the track */
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.05));
+        }
+
+        .resource-item.consumable-item {
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .resource-item.consumable-item:hover:not(.disabled-consumable) {
+            background-color: #6a6b66; /* Lighter hover for clickable items */
+            transform: translateY(-1px);
+        }
+
+        .resource-item.consumable-item:active:not(.disabled-consumable) {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Subtle active shadow */
+        }
+
+        .resource-item.disabled-consumable {
+            background-color: #4b5563; /* Tailwind gray-600 */
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+            pointer-events: none; /* Crucial for disabling clicks */
+        }
+
+        /* Specific colors for consumable items */
+        .resource-item.rottenFood-item { background-color: #7c2d12; /* Darker rusty red */ }
+        .resource-item.cookedFood-item { background-color: #a16207; /* Amber-700, cooked brown */ }
+        .resource-item.dirtyWater-item { background-color: #ca8a04; /* Yellow-600, murky yellow */ }
+        .resource-item.cleanWater-item { background-color: #2563eb; /* Blue-600, clean blue */ }
+        .resource-item.bandages-item { background-color: #5d4037; /* Brown-700, bandage color */ }
+        .resource-item.energyBar-item { background-color: #8b5cf6; /* Tailwind violet-500, purple */ } /* New color */
+        .resource-item.machete-item { background-color: #059669; } /* Tailwind emerald-600, green */
+        .resource-item.charredDocument-item { background-color: #4a4a4a; } /* Dark gray for charred document */
+        .resource-item.frontBikeTire-item { background-color: #6b7280; } /* Tailwind gray-500 for tire */
+        .resource-item.boltCutters-item { background-color: #4b5563; } /* Tailwind gray-600 for bolt cutters */
+
+
+        /* Ensure text color is readable on new backgrounds */
+        .resource-item.rottenFood-item,
+        .resource-item.cookedFood-item,
+        .resource-item.dirtyWater-item,
+        .resource-item.cleanWater-item,
+        .resource-item.bandages-item,
+        .resource-item.energyBar-item,
+        .resource-item.machete-item,
+        .resource-item.charredDocument-item,
+        .resource-item.frontBikeTire-item,
+        .resource-item.boltCutters-item { /* Added new item */
+            color: white; /* Ensure text is white on colored backgrounds */
+        }
+
+
+        .resource-value {
+            font-weight: bold;
+            color: #e0e0d0;
+            float: right; /* Align value to the right */
+        }
+
+        .save-button-container {
+            padding: 1rem;
+            text-align: center;
+            background-color: #3c3d38; /* Matches container background */
+            border-top: 1px solid #444540; /* Darker separator */
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+
+        /* New Crafting Section */
+        .crafting-section {
+            padding: 1rem;
+            background-color: #3c3d38;
+            border-top: 1px solid #444540;
+            display: none; /* Hidden by default */
+        }
+        .crafting-section .card {
+            background-color: #4a4b45;
+            border: 1px solid #555650;
+            border-radius: 8px;
+            padding: 1rem;
+            width: 100%; /* Take full width of its container */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            body {
+                padding: 0;
+            }
+            .header-stats {
+                grid-template-columns: 1fr;
+            }
+            .game-log-card {
+                min-height: 150px; /* Adjust height for mobile */
+            }
+            .main-content-area {
+                flex-direction: column; /* Stack cards vertically on small screens */
+                padding: 0.5rem; /* Less padding */
+                gap: 0.5rem;
+            }
+            .card {
+                padding: 0.75rem; /* Less padding inside cards */
+            }
+            .card-title {
+                margin-bottom: 0.75rem;
+            }
+            .action-buttons, .resource-group-items {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Adjust button/resource layout */
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header-stats">
+            <div class="stat-item">Health: <span id="healthDisplay" class="stat-value"></span></div>
+            <div class="stat-item">Stamina: <span id="staminaDisplay" class="stat-value"></span></div>
+            <div class="stat-item">Hunger: <span id="hungerDisplay" class="stat-value"></span></div>
+            <div class="stat-item">Thirst: <span id="thirstDisplay" class="stat-value"></span></div>
+            <div class="stat-item">Day: <span id="dayDisplay" class="stat-value"></span></div>
+            <div class="stat-item">Time: <span id="timeDisplay" class="stat-value"></span></div>
+            <div class="stat-item">Trailer Security: <span id="trailerSecurityDisplay" class="stat-value"></span></div>
+        </div>
+
+        <div class="main-content-area">
+            <div class="card actions-card">
+                <div id="actionsCardTitle" class="card-title">Actions</div> <div id="mainActionButtons" class="action-buttons">
+                    <button id="lookAroundButton"><span class="button-text">Look Around</span><div class="progress-bar-fill"></div></button>
+                    <button id="sleepButton" style="display: none;"><span class="button-text">Sleep</span><div class="progress-bar-fill"></div></button>
+                    <button id="searchTrailerButton"><span class="button-text">Search Lot 27</span><div class="progress-bar-fill"></div></button>
+                    <button id="repairTrailerButton" style="display: none;"><span class="button-text">Fortify Trailer</span><div class="progress-bar-fill"></div></button> <button id="exploreParkButton" style="display: none;"><span class="button-text">Explore Park</span><div class="progress-bar-fill"></div></button>
+                </div>
+
+                <div id="parkExplorationButtons" class="action-buttons" style="display: none;">
+                    <button id="surveySurroundingButton"><span class="button-text">Survey Surrounding</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreNorthSectionButton" style="display: none;"><span class="button-text">North Section</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreSouthSectionButton" style="display: none;"><span class="button-text">South Section</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreCommunityCenterButton" style="display: none;"><span class="button-text">Community Center</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreCommunityCenterOfficeButton" style="display: none;"><span class="button-text">Office</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreCommunityCenterKitchenButton" style="display: none;"><span class="button-text">Kitchen</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreCommunityCenterGymButton" style="display: none;"><span class="button-text">Gym</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreCommunityCenterDilapidatedShackButton" style="display: none;"><span class="button-text">Dilapidated Shack</span><div class="progress-bar-fill"></div></button> <button id="exploreHoardersHavenButton" style="display: none;"><span class="button-text">Hoarder's Haven</span><div class="progress-bar-fill"></div></button> <button id="exploreOvergrownOasisButton" style="display: none;"><span class="button-text">Overgrown Oasis</span><div class="progress-bar-fill"></div></button> <button id="exploreBurnedOutShellButton" style="display: none;"><span class="button-text">Burned-Out Shell</span><div class="progress-bar-fill"></div></button> <button id="returnToThornyvaleHubButton" style="display: none;"><span class="button-text">Return to Thornyvale Hub</span><div class="progress-bar-fill"></div></button>
+                    <button id="returnToTrailerButton"><span class="button-text">Return to Trailer</span><div class="progress-bar-fill"></div></button>
+                </div>
+            </div>
+
+            <div id="gameLog" class="card game-log-card">
+                <div class="card-title">Log</div>
+                <div class="log-message">Welcome to Thornyvale: Rust and Ruin.</div>
+                <div class="log-message">Years after the collapse, you find awake on a stained mattress in a dilapidated trailer.</div>
+                <div class="log-message">Your first priority: secure your home.</div>
+            </div>
+
+            <div class="card inventory-card">
+                <div class="card-title">Inventory</div>
+                <div id="resourceDisplay" class="resource-display">
+                    <div id="materialsGroup" class="resource-group" style="display: none;">
+                        <div class="resource-group-title">Materials</div>
+                        <div id="materialsDisplay" class="resource-group-items">
+                            </div>
+                    </div>
+                    <div id="suppliesGroup" class="resource-group" style="display: none;">
+                        <div class="resource-group-title">Supplies</div>
+                        <div id="suppliesDisplay" class="resource-group-items">
+                            </div>
+                    </div>
+                    <div id="gearGroup" class="resource-group" style="display: none;">
+                        <div class="resource-group-title">Gear</div>
+                        <div id="gearDisplay" class="resource-group-items">
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="craftingSection" class="crafting-section">
+            <div class="card">
+                <div class="card-title">Crafting</div>
+                <div id="craftingButtons" class="action-buttons">
+                    <button id="craftCampfireButton"><span class="button-text">Craft Campfire</span><div class="progress-bar-fill"></div></button>
+                    <button id="cookFoodButton" style="display: none;"><span class="button-text">Cook Food</span><div class="progress-bar-fill"></div></button>
+                    <button id="boilWaterButton" style="display: none;"><span class="button-text">Boil Water</span><div class="progress-bar-fill"></div></button>
+                    <button id="craftBandagesButton" style="display: none;"><span class="button-text">Craft Bandages</span><div class="progress-bar-fill"></div></button> </div>
+            </div>
+        </div>
+
+        <div class="save-button-container">
+            <button id="saveGameButton">Save Game</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Game State ---
+        let gameState = {
+            health: 100,
+            stamina: 50, // Player starts with 50 stamina
+            maxStamina: 100, // Max stamina is 100
+            hunger: 0, // 0 = not hungry, 100 = starving
+            thirst: 0, // 0 = not thirsty, 100 = dehydrated
+            day: 1,
+            currentHour: 6, // 0-23, starts at 6 AM
+            trailerSecurity: 10, // Changed from 0 to 10
+            trailerSearchesLeft: 3, // Initial searches in the starting trailer
+            trailerSearchCooldownEndTime: 0, // Timestamp when cooldown ends
+            currentLocation: 'trailer', // 'trailer' or 'thornyvale'
+            hasLookedAround: false, // New state variable to track first look around
+            hasSearchedTrailer: false, // New state variable to track if trailer has been searched
+            hasCampfire: false, // New state variable for campfire
+            trailerSearchesToday: 0, // New: Track daily searches for Lot 27
+            hasSurveyedPark: false, // New: Track if the park has been initially surveyed
+            hasFoundRags: false, // New: Track if rags have been found for the first time
+            hasFoundMachete: false, // New: Track if machete has been found for the first time
+            hasFoundFrontBikeTire: false, // New: Track if Front Bike Tire has been found for the first time
+            hasFoundBoltCutters: false, // New: Track if Bolt Cutters have been found for the first time
+            hasFoundMaterials: false, // New: Track if any material has been found
+            hasFoundSupplies: false, // New: Track if any supply has been found
+            currentParkView: 'overview', // New: 'overview', 'communityCenter', 'northSection', 'southSection'
+
+            thornyvaleMap: {
+                northSection: { discovered: false, scavengedCount: 0, description: 'A dense, overgrown part of the park with many collapsed trailers.', zombieChance: 0.3, subLocations: { hoardershaven: { discovered: false, description: 'a chaotic mess of discarded junk, boxes, and tarps.', zombieChance: 0.3 }, overgrownoasis: { discovered: false, description: 'vines and thick bushes have almost entirely swallowed this small trailer.', zombieChance: 0.05 }, burnedoutshell: { discovered: false, description: 'a charred husk, ravaged by fire.', zombieChance: 0.0 } } },
+                southSection: { discovered: false, scavengedCount: 0, description: 'More open, with fewer trailers but some old sheds and garages.', zombieChance: 0.2, subLocations: {} },
+                communityCenter: { 
+                    discovered: false, 
+                    scavengedCount: 0, 
+                    description: 'The dilapidated community center, once a gathering spot, now eerily silent.', 
+                    zombieChance: 0.4,
+                    subLocations: { 
+                        office: { discovered: false, description: 'a dusty office filled with overturned desks and scattered papers.', zombieChance: 0.1 },
+                        kitchen: { discovered: false, description: 'a grimy kitchen, surprisingly intact but with a lingering smell of decay.', zombieChance: 0.2 },
+                        gym: { discovered: false, description: 'a large, echoing gym with broken windows and scattered sports equipment.', zombieChance: 0.3 },
+                        dilapidatedshack: { discovered: false, description: 'a small, dilapidated shack, barely standing.', zombieChance: 0.15 }
+                    }
+                },
+            },
+
+            resources: {
+                scrapMetal: 0,
+                rags: 0,
+                dirtyWater: 0,
+                rottenFood: 0,
+                wood: 0,
+                components: 0,
+                cleanWater: 0,
+                cookedFood: 0,
+                bandages: 0,
+                energyBar: 0,
+                machete: 0, // New item
+                charredDocument: 0, // New item
+                frontBikeTire: 0, // New item
+                boltCutters: 0 // New item
+            },
+            // Add other game state variables here (e.g., discovered areas, survivors)
+        };
+
+        // --- UI Elements ---
+        const healthDisplay = document.getElementById('healthDisplay');
+        const staminaDisplay = document.getElementById('staminaDisplay');
+        const hungerDisplay = document.getElementById('hungerDisplay');
+        const thirstDisplay = document.getElementById('thirstDisplay');
+        const dayDisplay = document.getElementById('dayDisplay');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const trailerSecurityDisplay = document.getElementById('trailerSecurityDisplay');
+        const resourceDisplay = document.getElementById('resourceDisplay'); // This is now the container for groups
+        const materialsGroupDiv = document.getElementById('materialsGroup'); // New: Reference to the Materials group div
+        const materialsDisplay = document.getElementById('materialsDisplay'); // New
+        const suppliesGroupDiv = document.getElementById('suppliesGroup'); // New: Reference to the Supplies group div
+        const suppliesDisplay = document.getElementById('suppliesDisplay'); // New
+        const gameLog = document.getElementById('gameLog');
+        const actionsCardTitle = document.getElementById('actionsCardTitle'); // Get reference to the actions card title
+
+        const mainActionButtonsDiv = document.getElementById('mainActionButtons');
+        const parkExplorationButtonsDiv = document.getElementById('parkExplorationButtons');
+        const craftingSectionDiv = document.getElementById('craftingSection');
+
+        const lookAroundButton = document.getElementById('lookAroundButton');
+        const sleepButton = document.getElementById('sleepButton');
+        const searchTrailerButton = document.getElementById('searchTrailerButton');
+        const repairTrailerButton = document.getElementById('repairTrailerButton');
+        const exploreParkButton = document.getElementById('exploreParkButton');
+
+        const craftCampfireButton = document.getElementById('craftCampfireButton');
+        const cookFoodButton = document.getElementById('cookFoodButton');
+        const boilWaterButton = document.getElementById('boilWaterButton');
+        const craftBandagesButton = document.getElementById('craftBandagesButton');
+
+        const exploreNorthSectionButton = document.getElementById('exploreNorthSectionButton');
+        const exploreSouthSectionButton = document.getElementById('exploreSouthSectionButton');
+        const exploreCommunityCenterButton = document.getElementById('exploreCommunityCenterButton');
+        const returnToTrailerButton = document.getElementById('returnToTrailerButton');
+        const saveGameButton = document.getElementById('saveGameButton');
+
+        const surveySurroundingButton = document.getElementById('surveySurroundingButton');
+        const exploreCommunityCenterOfficeButton = document.getElementById('exploreCommunityCenterOfficeButton');
+        const exploreCommunityCenterKitchenButton = document.getElementById('exploreCommunityCenterKitchenButton');
+        const exploreCommunityCenterGymButton = document.getElementById('exploreCommunityCenterGymButton');
+        const exploreCommunityCenterDilapidatedShackButton = document.getElementById('exploreCommunityCenterDilapidatedShackButton'); // New button reference
+        const returnToThornyvaleHubButton = document.getElementById('returnToThornyvaleHubButton');
+        const exploreHoardersHavenButton = document.getElementById('exploreHoardersHavenButton'); // New button reference
+        const exploreOvergrownOasisButton = document.getElementById('exploreOvergrownOasisButton'); // New button reference
+        const exploreBurnedOutShellButton = document.getElementById('exploreBurnedOutShellButton'); // New button reference
+        const gearGroupDiv = document.getElementById('gearGroup'); // New: Reference to the Gear group div
+        const gearDisplayDiv = document.getElementById('gearDisplay'); // New: Reference to the Gear display items div
+
+
+        // Store original button text for resetting after actions
+        const originalButtonTexts = new Map();
+        document.querySelectorAll('#mainActionButtons button, #parkExplorationButtons button, #craftingButtons button').forEach(button => {
+            originalButtonTexts.set(button.id, button.querySelector('.button-text').textContent);
+        });
+
+        // --- Helper Function for Display Names ---
+        /**
+         * Converts an internal location key into a user-friendly display name.
+         * @param {string} key - The internal location key (e.g., 'communityCenterOffice', 'northSectionhoardershaven').
+         * @returns {string} The formatted display name.
+         */
+        function getDisplayLocationName(key) {
+            if (key === 'communityCenterOffice') return 'Community Center Office';
+            if (key === 'communityCenterKitchen') return 'Community Center Kitchen';
+            if (key === 'communityCenterGym') return 'Community Center Gym';
+            if (key === 'communityCenterdilapidatedshack') return 'Dilapidated Shack';
+            if (key === 'northSectionhoardershaven') return 'Hoarder\'s Haven';
+            if (key === 'northSectionovergrownoasis') return 'Overgrown Oasis';
+            if (key === 'northSectionburnedoutshell') return 'Burned-Out Shell';
+            // Fallback for general sections or unmapped sub-locations
+            return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        }
+
+        // --- Charred Document Snippets ---
+        const charredDocumentSnippets = [
+            "A scorched page from a diary: '...the fire spread so fast. No time to save anything. Just run.'",
+            "A half-burnt letter: '...tell Sarah I love her. Don't come back for me. It's too late.'",
+            "A singed child's drawing: a stick figure family, smiling, with a large, unidentifiable dark smudge over one figure.",
+            "A charred grocery list: '...milk, bread, bandages, batteries. Need more batteries. So many batteries.'",
+            "A fragment of a newspaper: '...reports of unrest growing. Authorities advise citizens to remain indoors. Looting...' The rest is ash."
+        ];
+
+        // --- Strain Messages (for hunger/thirst strain) ---
+        const strainMessages = [
+            "Your body protests the exertion. You lose ",
+            "The strain of your hunger/thirst takes its toll. You lose ",
+            "You feel faint from lack of sustenance. You lose ",
+            "Your body aches from the effort without proper fuel. You lose "
+        ];
+
+
+        // --- Core Game Functions ---
+
+        /**
+         * Updates all UI elements based on the current gameState.
+         */
+        function updateUI() {
+            healthDisplay.textContent = gameState.health;
+            staminaDisplay.textContent = gameState.stamina;
+            hungerDisplay.textContent = gameState.hunger;
+            thirstDisplay.textContent = gameState.thirst;
+            dayDisplay.textContent = gameState.day;
+            timeDisplay.textContent = `${String(gameState.currentHour).padStart(2, '0')}:00`;
+            trailerSecurityDisplay.textContent = `${gameState.trailerSecurity}/100`;
+
+            // Clear existing resources and re-render into their groups
+            materialsDisplay.innerHTML = '';
+            suppliesDisplay.innerHTML = '';
+            gearDisplayDiv.innerHTML = ''; // Clear gear display
+
+            // Hide all inventory groups by default
+            materialsGroupDiv.style.display = 'none';
+            suppliesGroupDiv.style.display = 'none';
+            gearGroupDiv.style.display = 'none';
+
+            const materials = ['scrapMetal', 'wood', 'rags', 'components'];
+            const supplies = ['dirtyWater', 'rottenFood', 'cleanWater', 'cookedFood', 'bandages', 'energyBar', 'charredDocument'];
+            const gear = ['machete', 'frontBikeTire', 'boltCutters']; // Define gear items
+
+            let foundAnyMaterials = false;
+            for (const resourceType of materials) {
+                const amount = gameState.resources[resourceType];
+                if (amount > 0) {
+                    foundAnyMaterials = true;
+                    const resourceItem = document.createElement('div');
+                    const displayName = resourceType.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                    resourceItem.className = 'resource-item';
+                    resourceItem.innerHTML = `<span class="button-text">${displayName}: <span class="resource-value">${amount}</span></span><div class="progress-bar-fill"></div>`;
+                    materialsDisplay.appendChild(resourceItem);
+                }
+            }
+            if (foundAnyMaterials || gameState.hasFoundMaterials) { // Show if items exist or have ever been found
+                materialsGroupDiv.style.display = 'block';
+            }
+
+
+            let foundAnySupplies = false;
+            for (const resourceType of supplies) {
+                const amount = gameState.resources[resourceType];
+                if (amount > 0) {
+                    foundAnySupplies = true;
+                    const resourceItem = document.createElement('div');
+                    const displayName = resourceType.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                    
+                    const isConsumable = ['rottenFood', 'cookedFood', 'dirtyWater', 'cleanWater', 'bandages', 'energyBar', 'charredDocument'].includes(resourceType);
+                    
+                    resourceItem.className = `resource-item ${resourceType}-item`; // Add specific color class
+                    
+                    if (isConsumable) {
+                        resourceItem.classList.add('consumable-item');
+                        resourceItem.dataset.resourceType = resourceType;
+
+                        let isDisabled = false;
+                        if (resourceType === 'rottenFood' || resourceType === 'cookedFood') {
+                            isDisabled = amount <= 0 || gameState.hunger <= 0;
+                        } else if (resourceType === 'dirtyWater' || resourceType === 'cleanWater') {
+                            isDisabled = amount <= 0 || gameState.thirst <= 0;
+                        } else if (resourceType === 'bandages') {
+                            isDisabled = amount <= 0 || gameState.health >= 100;
+                        } else if (resourceType === 'energyBar') {
+                            isDisabled = amount <= 0 || gameState.stamina >= gameState.maxStamina;
+                        } else if (resourceType === 'charredDocument') { // Charred Document is always usable if you have it
+                             isDisabled = amount <= 0;
+                        }
+
+                        if (isDisabled) {
+                            resourceItem.classList.add('disabled-consumable');
+                        }
+                        resourceItem.onclick = isDisabled ? null : handleConsumableClick;
+                    }
+
+                    resourceItem.innerHTML = `<span class="button-text">${displayName}: <span class="resource-value">${amount}</span></span><div class="progress-bar-fill"></div>`;
+                    suppliesDisplay.appendChild(resourceItem);
+                }
+            }
+            if (foundAnySupplies || gameState.hasFoundSupplies) { // Show if items exist or have ever been found
+                suppliesGroupDiv.style.display = 'block';
+            }
+
+            let foundAnyGear = false;
+            for (const resourceType of gear) {
+                const amount = gameState.resources[resourceType];
+                if (amount > 0) {
+                    foundAnyGear = true;
+                    const resourceItem = document.createElement('div');
+                    const displayName = resourceType.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                    resourceItem.className = `resource-item ${resourceType}-item`;
+                    resourceItem.innerHTML = `<span class="button-text">${displayName}: <span class="resource-value">${amount}</span></span><div class="progress-bar-fill"></div>`;
+                    gearDisplayDiv.appendChild(resourceItem);
+                }
+            }
+            if (foundAnyGear) { // Gear group only shows if items exist
+                gearGroupDiv.style.display = 'block';
+            }
+
+
+            // Control visibility of action button groups
+            // First, hide all park-specific buttons
+            surveySurroundingButton.style.display = 'none';
+            exploreNorthSectionButton.style.display = 'none';
+            exploreSouthSectionButton.style.display = 'none';
+            exploreCommunityCenterButton.style.display = 'none';
+            exploreCommunityCenterOfficeButton.style.display = 'none';
+            exploreCommunityCenterKitchenButton.style.display = 'none';
+            exploreCommunityCenterGymButton.style.display = 'none';
+            exploreCommunityCenterDilapidatedShackButton.style.display = 'none'; // New: Hide Dilapidated Shack
+            exploreHoardersHavenButton.style.display = 'none'; // Hide new button
+            exploreOvergrownOasisButton.style.display = 'none'; // Hide new button
+            exploreBurnedOutShellButton.style.display = 'none'; // Hide new button
+            returnToThornyvaleHubButton.style.display = 'none';
+            returnToTrailerButton.style.display = 'block'; // Always show return to trailer when in park view
+
+            if (gameState.currentLocation === 'trailer') {
+                actionsCardTitle.textContent = 'Trailer 27';
+                mainActionButtonsDiv.style.display = 'grid';
+                parkExplorationButtonsDiv.style.display = 'none';
+            } else if (gameState.currentLocation === 'thornyvale') {
+                mainActionButtonsDiv.style.display = 'none';
+                parkExplorationButtonsDiv.style.display = 'grid';
+                
+                if (!gameState.hasSurveyedPark) {
+                    actionsCardTitle.textContent = 'Thornyvale';
+                    surveySurroundingButton.style.display = 'block';
+                } else {
+                    // Determine current title based on currentParkView
+                    if (gameState.currentParkView === 'overview') {
+                        actionsCardTitle.textContent = 'Thornyvale';
+                        if (gameState.thornyvaleMap.northSection.discovered) {
+                            exploreNorthSectionButton.style.display = 'block';
+                        }
+                        if (gameState.thornyvaleMap.southSection.discovered) {
+                            exploreSouthSectionButton.style.display = 'block';
+                        }
+                        if (gameState.thornyvaleMap.communityCenter.discovered) {
+                            exploreCommunityCenterButton.style.display = 'block';
+                        }
+                    } else if (gameState.currentParkView === 'communityCenter') {
+                        actionsCardTitle.textContent = 'Community Center';
+                        if (gameState.thornyvaleMap.communityCenter.subLocations.office.discovered) {
+                            exploreCommunityCenterOfficeButton.style.display = 'block';
+                        }
+                        if (gameState.thornyvaleMap.communityCenter.subLocations.kitchen.discovered) {
+                            exploreCommunityCenterKitchenButton.style.display = 'block';
+                        }
+                        if (gameState.thornyvaleMap.communityCenter.subLocations.gym.discovered) {
+                            exploreCommunityCenterGymButton.style.display = 'block';
+                        }
+                        if (gameState.thornyvaleMap.communityCenter.subLocations.dilapidatedshack.discovered) { // New: Show Dilapidated Shack
+                            exploreCommunityCenterDilapidatedShackButton.style.display = 'block';
+                        }
+                        returnToThornyvaleHubButton.style.display = 'block';
+                    } else if (gameState.currentParkView === 'northSection') {
+                        actionsCardTitle.textContent = 'North Section';
+                        // Show North Section sub-locations
+                        if (gameState.thornyvaleMap.northSection.subLocations.hoardershaven.discovered) {
+                            exploreHoardersHavenButton.style.display = 'block';
+                        }
+                        if (gameState.thornyvaleMap.northSection.subLocations.overgrownoasis.discovered) {
+                            exploreOvergrownOasisButton.style.display = 'block';
+                        }
+                        if (gameState.thornyvaleMap.northSection.subLocations.burnedoutshell.discovered) {
+                            exploreBurnedOutShellButton.style.display = 'block';
+                        }
+                        returnToThornyvaleHubButton.style.display = 'block';
+                    } else if (gameState.currentParkView === 'southSection') {
+                        actionsCardTitle.textContent = 'South Section';
+                        // Add specific South Section sub-buttons here when implemented
+                        returnToThornyvaleHubButton.style.display = 'block';
+                    }
+                }
+            }
+            
+            // Hide all action buttons by default, then show based on conditions
+            sleepButton.style.display = 'none';
+            searchTrailerButton.style.display = 'none';
+            repairTrailerButton.style.display = 'none';
+            exploreParkButton.style.display = 'none';
+            
+            // Always show lookAroundButton
+            lookAroundButton.style.display = 'block';
+            lookAroundButton.disabled = false;
+
+            // Show other buttons only after first look around
+            if (gameState.hasLookedAround) {
+                sleepButton.style.display = 'block';
+                searchTrailerButton.style.display = 'block';
+
+                if (gameState.hasSearchedTrailer) {
+                    repairTrailerButton.style.display = 'block';
+                    craftingSectionDiv.style.display = 'block';
+                    craftBandagesButton.disabled = gameState.resources.rags < 2;
+                    craftBandagesButton.style.display = gameState.hasFoundRags ? 'block' : 'none';
+                } else {
+                    craftingSectionDiv.style.display = 'none';
+                }
+            } else {
+                craftingSectionDiv.style.display = 'none';
+            }
+
+            repairTrailerButton.disabled = gameState.trailerSecurity >= 100;
+            exploreParkButton.style.display = gameState.trailerSecurity >= 25 ? 'block' : 'none';
+
+            // "Search Lot 27" daily limit logic
+            if (gameState.trailerSearchesToday >= 5) {
+                searchTrailerButton.disabled = true;
+                searchTrailerButton.querySelector('.button-text').textContent = "Daily Limit Reached";
+                // The addMessage for this is now handled directly in searchTrailer() on the 5th attempt
+            } else {
+                searchTrailerButton.disabled = false;
+                searchTrailerButton.querySelector('.button-text').textContent = originalButtonTexts.get('searchTrailerButton');
+            }
+
+
+            // Crafting button states
+            craftCampfireButton.disabled = gameState.hasCampfire || gameState.resources.wood < 2;
+            cookFoodButton.style.display = gameState.hasCampfire ? 'block' : 'none';
+            cookFoodButton.disabled = !gameState.hasCampfire || gameState.resources.rottenFood <= 0 || gameState.hunger <= 0 || gameState.resources.wood < 1;
+            boilWaterButton.style.display = gameState.hasCampfire ? 'block' : 'none';
+            boilWaterButton.disabled = !gameState.hasCampfire || gameState.resources.dirtyWater <= 0 || gameState.thirst <= 0 || gameState.resources.wood < 1;
+        }
+
+        /**
+         * Handles click events on consumable inventory items.
+         * @param {Event} event - The click event.
+         */
+        function handleConsumableClick(event) {
+            const resourceItemDiv = event.currentTarget;
+            if (resourceItemDiv.classList.contains('disabled-consumable')) {
+                return;
+            }
+
+            const resourceType = resourceItemDiv.dataset.resourceType;
+
+            let actionFunction;
+            let delayMs;
+            let actionText;
+
+            // Map resource types to their specific consumption functions and delays
+            if (resourceType === 'rottenFood') {
+                actionFunction = () => _eatFoodLogic('rottenFood');
+                delayMs = 2000;
+                actionText = "Eating...";
+            } else if (resourceType === 'cookedFood') {
+                actionFunction = () => _eatFoodLogic('cookedFood');
+                delayMs = 2000;
+                actionText = "Eating...";
+            } else if (resourceType === 'dirtyWater') {
+                actionFunction = () => _drinkWaterLogic('dirtyWater');
+                delayMs = 2000;
+                actionText = "Drinking...";
+            } else if (resourceType === 'cleanWater') {
+                actionFunction = () => _drinkWaterLogic('cleanWater');
+                delayMs = 2000;
+                actionText = "Drinking...";
+            } else if (resourceType === 'bandages') {
+                actionFunction = _useBandageLogic;
+                delayMs = 3000;
+                actionText = "Applying...";
+            } else if (resourceType === 'energyBar') {
+                actionFunction = _useEnergyBarLogic;
+                delayMs = 2000;
+                actionText = "Consuming...";
+            } else if (resourceType === 'charredDocument') { // New: Charred Document usage
+                actionFunction = _useCharredDocumentLogic;
+                delayMs = 1000; // Quick read
+                actionText = "Reading...";
+            } else {
+                console.error('Unknown consumable type or action not defined for this resource:', resourceType);
+                return;
+            }
+
+            performActionWithDelay(resourceItemDiv, actionFunction, delayMs, actionText);
+        }
+
+        /**
+         * Adds a new message to the game log.
+         * Newest messages appear at the top. Max 20 messages.
+         * @param {string} text - The message to add.
+         * @param {string} [type='default'] - Optional type for styling (e.g., 'warning', 'gain', 'loss', 'new-day', 'atmospheric').
+         */
+        const MAX_LOG_ENTRIES = 100; // Increased max log entries
+        function addMessage(text, type = 'default') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'log-message';
+            if (type !== 'default') {
+                messageDiv.classList.add(type);
+            }
+
+            // Removed date and timestamp from log entries
+            messageDiv.textContent = `${text}`;
+            
+            gameLog.prepend(messageDiv);
+
+            while (gameLog.children.length > MAX_LOG_ENTRIES) {
+                gameLog.removeChild(gameLog.lastChild);
+            }
+
+            gameLog.scrollTop = 0;
+        }
+
+        /**
+         * Adds a random atmospheric message to the log.
+         */
+        function addAtmosphericMessage() {
+            const dawnMessages = [
+                'The first faint light of dawn barely pierces the gloom.',
+                'A cold mist hangs low as the new day begins.',
+                'The world slowly awakens, but the silence remains heavy.',
+                'Faint birdsong, quickly hushed, marks the arrival of morning.',
+                'The air is crisp with the promise of a new, dangerous day.'
+            ];
+            const midDayMessages = [
+                'The sun beats down, making the air thick and still.',
+                'Shadows are short, and the heat shimmers over the cracked asphalt.',
+                'A buzzing insect is the only sound, a reminder of life persisting.',
+                'The midday sun highlights the rust and decay of the trailer park.',
+                'The oppressive stillness of midday settles over Thornyvale.'
+            ];
+            const duskMessages = [
+                'The sky bleeds orange and purple as dusk descends.',
+                'Long shadows stretch like grasping fingers across the ground.',
+                'A chill creeps into the air, signaling the coming night.',
+                'The sounds of the day begin to fade, replaced by an unsettling quiet.',
+                'The last rays of sunlight paint the ruined trailers in stark relief.'
+            ];
+            const nightMessages = [
+                'The darkness is absolute, broken only by distant, unseen shapes.',
+                'Every creak and rustle sounds amplified in the dead of night.',
+                'The moon casts long, distorted shadows, playing tricks on your eyes.',
+                'A cold wind howls, carrying the scent of decay.',
+                'You hear faint, guttural groans in the distance, a reminder of the night\'s dangers.',
+                'The stars are sharp pinpricks in the vast, indifferent sky.'
+            ];
+
+            const randomMessages = [
+                'The wind whispers through the broken windows of nearby trailers.',
+                'A distant howl echoes through the park, sending shivers down your spine.',
+                'You hear the faint, rhythmic drip of water somewhere nearby.',
+                'The air is still and heavy, a silence that feels unnatural.',
+                'A shadow moves quickly in your peripheral vision, but when you look, there\'s nothing there.'
+            ];
+
+
+            let messagesToChooseFrom;
+            if (gameState.currentHour >= 5 && gameState.currentHour <= 7) { // 5 AM to 7 AM
+                messagesToChooseFrom = dawnMessages;
+            } else if (gameState.currentHour >= 8 && gameState.currentHour <= 16) { // 8 AM to 4 PM
+                messagesToChooseFrom = midDayMessages;
+            } else if (gameState.currentHour >= 17 && gameState.currentHour <= 19) { // 5 PM to 7 PM
+                messagesToChooseFrom = duskMessages;
+            } else { // 8 PM to 4 AM
+                messagesToChooseFrom = nightMessages;
+            }
+
+            const chance = 0.2; // 20% chance for an atmospheric message
+            if (Math.random() < chance && messagesToChooseFrom.length > 0) {
+                const randomMessage = messagesToChooseFrom[Math.floor(Math.random() * messagesToChooseFrom.length)];
+                addMessage(randomMessage, 'atmospheric');
+            }
+        }
+
+
+        /**
+         * Advances time in the game, affecting hunger, thirst, etc.
+         * @param {number} hours - The number of hours to pass.
+         */
+        function passTime(hours) {
+            gameState.currentHour += hours;
+
+            while (gameState.currentHour >= 24) {
+                gameState.currentHour -= 24;
+                gameState.day++;
+                addMessage("A new day dawns. Day " + gameState.day + ".", 'new-day');
+                gameState.trailerSearchesToday = 0; // Reset daily searches
+            }
+
+            gameState.hunger = Math.min(100, gameState.hunger + (hours * 2));
+            gameState.thirst = Math.min(100, gameState.thirst + (hours * 3));
+
+            if (gameState.hunger >= 80) {
+                const oldHealth = gameState.health;
+                gameState.health = Math.max(0, gameState.health - 1);
+                if (oldHealth - gameState.health > 0) {
+                    console.log(`[HEALTH CHANGE] Health decreased by 1 due to High Hunger during time passage. Current health: ${gameState.health}`);
+                }
+            }
+            if (gameState.thirst >= 80) {
+                const oldHealth = gameState.health;
+                gameState.health = Math.max(0, gameState.health - 2);
+                 if (oldHealth - gameState.health > 0) {
+                    console.log(`[HEALTH CHANGE] Health decreased by 2 due to High Thirst during time passage. Current health: ${gameState.health}`);
+                }
+            }
+            if (gameState.hunger >= 90 || gameState.thirst >= 90) {
+                const oldStamina = gameState.stamina;
+                gameState.stamina = Math.max(0, gameState.stamina - 5);
+                if (oldStamina - gameState.stamina > 0) {
+                    console.log(`[STAMINA CHANGE] Stamina decreased by 5 due to Extreme Hunger/Thirst. Current stamina: ${gameState.stamina}`);
+                }
+            }
+            
+            // Stamina is capped at maxStamina
+            gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + (hours * 0.5)); 
+
+            updateUI();
+        }
+
+        /**
+         * Adds a specified amount of a resource to the inventory.
+         * @param {string} type - The type of resource (e.g., 'scrapMetal').
+         * @param {number} amount - The amount to add.
+         */
+        function addToInventory(type, amount) {
+            if (gameState.resources[type] !== undefined) {
+                gameState.resources[type] += amount;
+                // Check if rags were just found for the first time
+                if (type === 'rags' && !gameState.hasFoundRags && amount > 0) {
+                    gameState.hasFoundRags = true;
+                    addMessage("You've found some tattered rags. Perhaps they could be used for something useful.", 'gain');
+                }
+                // Check if machete was just found for the first time
+                if (type === 'machete' && !gameState.hasFoundMachete && amount > 0) { // New: Machete found
+                    gameState.hasFoundMachete = true;
+                    addMessage("You found a sturdy machete! This could be very useful.", 'gain');
+                }
+                // Check if frontBikeTire was just found for the first time
+                if (type === 'frontBikeTire' && !gameState.hasFoundFrontBikeTire && amount > 0) {
+                    gameState.hasFoundFrontBikeTire = true;
+                    addMessage("You found a Front Bike Tire! This could be useful for repairs.", 'gain');
+                }
+                // Check if boltCutters was just found for the first time
+                if (type === 'boltCutters' && !gameState.hasFoundBoltCutters && amount > 0) {
+                    gameState.hasFoundBoltCutters = true;
+                    addMessage("You found a pair of heavy-duty bolt cutters! These might open new paths.", 'gain');
+                }
+
+                // Update hasFoundMaterials/Supplies flags
+                const materialsList = ['scrapMetal', 'wood', 'rags', 'components'];
+                const suppliesList = ['dirtyWater', 'rottenFood', 'cleanWater', 'cookedFood', 'bandages', 'energyBar', 'charredDocument'];
+
+                if (materialsList.includes(type) && !gameState.hasFoundMaterials) {
+                    gameState.hasFoundMaterials = true;
+                    addMessage("You've found your first material! The 'Materials' section is now visible in your inventory.", 'gain');
+                } else if (suppliesList.includes(type) && !gameState.hasFoundSupplies) {
+                    gameState.hasFoundSupplies = true;
+                    addMessage("You've found your first supply item! The 'Supplies' section is now visible in your inventory.", 'gain');
+                }
+
+                updateUI();
+            } else {
+                console.error(`Attempted to gain unknown resource type: ${type}`);
+            }
+        }
+
+        /**
+         * Removes a specified amount of a resource from the inventory.
+         * @param {string} type - The type of resource.
+         * @param {number} amount - The amount to remove.
+         * @returns {boolean} - True if resources were successfully lost, false otherwise.
+         */
+        function loseResource(type, amount) {
+            if (gameState.resources[type] !== undefined && gameState.resources[type] >= amount) {
+                gameState.resources[type] -= amount;
+                updateUI();
+                return true;
+            } else {
+                addMessage(`Not enough ${type.replace(/([A-Z])/g, ' $1').toLowerCase()}.`);
+                return false;
+            }
+        }
+
+        // --- Action Delay with Progress Bar ---
+        let isPerformingAction = false;
+        let actionQueue = [];
+
+        /**
+         * Disables all action buttons and starts an action with a progress bar.
+         * This function now handles both regular buttons and clickable inventory items.
+         * @param {HTMLElement} element - The button or resource item element to display the progress bar in.
+         * @param {function} actionFunction - The function to call after the delay.
+         * @param {number} delayMs - The delay in milliseconds.
+         * @param {string} actionText - The text to display on the element during the action.
+         */
+        function performActionWithDelay(element, actionFunction, delayMs, actionText) {
+            if (isPerformingAction) {
+                actionQueue.push({ element, actionFunction, delayMs, actionText });
+                return;
+            }
+
+            isPerformingAction = true;
+            // Disable all regular action buttons
+            const allActionButtons = document.querySelectorAll('.action-buttons button');
+            allActionButtons.forEach(btn => btn.disabled = true);
+            // Disable all clickable consumable items
+            const allConsumableItems = document.querySelectorAll('.resource-item.consumable-item');
+            allConsumableItems.forEach(item => item.classList.add('disabled-consumable'));
+
+
+            const originalTextSpan = element.querySelector('.button-text');
+            const originalText = originalTextSpan ? originalTextSpan.textContent : element.textContent;
+            let progressBarFill = null; // Use let for re-assignment
+
+            if (element && typeof element.querySelector === 'function') {
+                progressBarFill = element.querySelector('.progress-bar-fill');
+            }
+
+            // Defensive check for progressBarFill. If not found, create a dummy one or handle gracefully.
+            if (!progressBarFill) {
+                console.error("CRITICAL ERROR: progressBarFill element not found for:", element.id || element.tagName, "HTML:", element ? element.outerHTML : "null element", ". Action will proceed without visual progress bar.");
+                // Fallback: just execute action and re-enable buttons
+                actionFunction();
+                addAtmosphericMessage();
+                isPerformingAction = false;
+                allActionButtons.forEach(btn => btn.disabled = false);
+                allConsumableItems.forEach(item => item.classList.remove('disabled-consumable'));
+                updateUI();
+                if (actionQueue.length > 0) {
+                    const nextAction = actionQueue.shift();
+                    performActionWithDelay(nextAction.element, nextAction.actionFunction, nextAction.delayMs, nextAction.actionText);
+                }
+                return;
+            }
+
+
+            if (originalTextSpan) {
+                originalTextSpan.textContent = actionText;
+            } else {
+                element.textContent = actionText;
+            }
+
+            progressBarFill.style.width = '0%';
+            progressBarFill.style.transition = `width ${delayMs / 1000}s linear`;
+
+            requestAnimationFrame(() => {
+                progressBarFill.style.width = '100%';
+            });
+
+            setTimeout(() => {
+                // --- NEW: Hunger/Thirst Strain Mechanic ---
+                const hungerThreshold = 85;
+                const thirstThreshold = 85;
+                const damagePerStrain = Math.floor(Math.random() * 5) + 1; // 1-5 damage
+
+                if (gameState.hunger > hungerThreshold || gameState.thirst > thirstThreshold) {
+                    const oldHealth = gameState.health; // Capture health before potential loss
+                    gameState.health = Math.max(0, gameState.health - damagePerStrain);
+                    const actualDamage = oldHealth - gameState.health; // Calculate actual damage dealt
+
+                    if (actualDamage > 0) { // Only log if damage actually occurred
+                        const randomStrainMessage = strainMessages[Math.floor(Math.random() * strainMessages.length)];
+                        addMessage(`${randomStrainMessage}${actualDamage} health.`, 'warning');
+                        console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Hunger/Thirst Strain. Current health: ${gameState.health}`);
+                    }
+                }
+                // --- END NEW ---
+
+                actionFunction(); // Call the actual action function
+                addAtmosphericMessage();
+                
+                progressBarFill.style.transition = 'none';
+                progressBarFill.style.width = '0%';
+                if (originalTextSpan) {
+                    originalTextSpan.textContent = originalText;
+                } else {
+                    element.textContent = originalText;
+                }
+
+
+                isPerformingAction = false;
+                allActionButtons.forEach(btn => btn.disabled = false);
+                allConsumableItems.forEach(item => item.classList.remove('disabled-consumable'));
+                updateUI();
+
+                if (actionQueue.length > 0) {
+                    const nextAction = actionQueue.shift();
+                    performActionWithDelay(nextAction.element, nextAction.actionFunction, nextAction.delayMs, nextAction.actionText);
+                }
+            }, delayMs);
+        }
+
+        // --- Action Functions (Main Trailer) ---
+
+        /**
+         * Describes the player's current surroundings.
+         */
+        function lookAround() {
+            const lookAroundMessages = [
+                'You glance around your dilapidated trailer. It feels a bit more secure now, but the outside world still holds dangers.',
+                'The air in your trailer is stale, but at least it\'s safe. You note the patched walls and boarded windows.',
+                'You survey your meager belongings. Each item tells a story of survival in this desolate world.',
+                'Dust motes dance in the slivers of light filtering through the gaps in the boards. Your trailer is a quiet refuge.',
+                'The silence of your trailer is broken only by the distant creaks of the old structure. It\'s a stark reminder of what once was.'
+            ];
+            const randomMessage = lookAroundMessages[Math.floor(Math.random() * lookAroundMessages.length)]; // Corrected to use lookAroundMessages
+            addMessage(randomMessage);
+            
+            if (!gameState.hasLookedAround) {
+                gameState.hasLookedAround = true;
+                addMessage("You feel a surge of determination. Time to survive.", 'new-day');
+            }
+            // updateUI is called by performActionWithDelay's callback
+        }
+
+        /**
+         * Allows the player to sleep, passing time and recovering.
+         */
+        function sleep() {
+            const sleepHours = 8;
+            addMessage('You settle down for some restless sleep. The sounds of the night are unsettling.');
+            passTime(sleepHours);
+            
+            let staminaRecoveredAmount;
+            let eventOccurredThisNight = false; 
+
+            const roll = Math.random();
+
+            // 1. Try for rat theft (5% chance)
+            const ratTheftChance = 0.05;
+            if (roll < ratTheftChance) {
+                // Check if there's any food to steal
+                if (gameState.resources.cookedFood > 0) {
+                    loseResource('cookedFood', 1);
+                    addMessage('You hear scurrying in the night. In the morning, you find some cooked food has been stolen by rats!', 'loss');
+                    eventOccurredThisNight = true; 
+                } else if (gameState.resources.rottenFood > 0) {
+                    loseResource('rottenFood', 1);
+                    addMessage('You hear scurrying in the night. In the morning, you find some rotten food has been stolen by rats!', 'loss');
+                    eventOccurredThisNight = true; 
+                } else {
+                    addMessage('You hear scurrying in the night, but it seems the rats found nothing to steal.', 'atmospheric');
+                }
+            }
+
+            // 2. Try for zombie attack (15% chance), only if no *disruptive* event has occurred yet
+            const zombieAttackChance = 0.15;
+            if (!eventOccurredThisNight && Math.random() < zombieAttackChance) { 
+                eventOccurredThisNight = true; 
+                addMessage('You were woken by sounds of scratching and groaning outside your trailer!', 'warning');
+                gameState.trailerSecurity = Math.max(0, gameState.trailerSecurity - 5);
+                addMessage('Your trailer security was compromised by 5 points during the night.', 'warning');
+
+                if (gameState.trailerSecurity <= 0) {
+                    const oldHealth = gameState.health;
+                    const damageTaken = Math.floor(Math.random() * 10) + 5;
+                    gameState.health = Math.max(0, gameState.health - damageTaken);
+                    const actualDamage = oldHealth - gameState.health;
+                    addMessage(`The zombies broke through! You took ${actualDamage} health damage defending yourself!`, 'warning');
+                    console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Zombie Attack. Current health: ${gameState.health}`);
+                } else {
+                    addMessage('Your defenses held, but barely. The zombies eventually moved on.');
+                }
+            }
+
+            // 3. Determine stamina recovery based on whether a disruptive event occurred
+            if (eventOccurredThisNight) {
+                staminaRecoveredAmount = Math.floor(Math.random() * 11) + 20; // 20-30 stamina if interrupted
+                addMessage(`Due to the disturbance, you only recovered ${staminaRecoveredAmount} stamina.`, 'loss');
+            } else { // Peaceful night (no disruptive event occurred)
+                staminaRecoveredAmount = Math.floor(Math.random() * 21) + 40; // 40-60 stamina normally
+                addMessage('The night passed quietly, without incident.', 'atmospheric'); 
+                addMessage(`You recovered ${staminaRecoveredAmount} stamina.`, 'gain');
+            }
+            gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + staminaRecoveredAmount);
+
+            addMessage('You wake up, feeling slightly more rested and ready for a new day.');
+            // updateUI is called by performActionWithDelay's callback
+        }
+
+        /**
+         * Consumes a specific type of food to reduce hunger.
+         * @param {string} foodType - The type of food to consume ('rottenFood' or 'cookedFood').
+         */
+        function _eatFoodLogic(foodType) {
+            const foodConsumed = 1;
+            let hungerReduced = 0;
+
+            if (foodType === 'cookedFood') {
+                hungerReduced = 40;
+            } else if (foodType === 'rottenFood') {
+                hungerReduced = 20;
+            } else {
+                addMessage(`Attempted to eat unknown food type: ${foodType}.`, 'warning');
+                return;
+            }
+
+            if (gameState.resources[foodType] <= 0) {
+                addMessage(`You have no ${foodType.replace(/([A-Z])/g, ' $1').toLowerCase()} to eat.`, 'warning');
+                return;
+            }
+            if (gameState.hunger <= 0) {
+                addMessage('You are not hungry right now.', 'default');
+                return;
+            }
+
+            if (loseResource(foodType, foodConsumed)) {
+                gameState.hunger = Math.max(0, gameState.hunger - hungerReduced);
+                addMessage(`You ate some ${foodType.replace(/([A-Z])/g, ' $1').toLowerCase()}. Your hunger decreased by ${hungerReduced}.`, 'loss');
+                
+                if (foodType === 'rottenFood' && Math.random() < 0.1) {
+                    const oldHealth = gameState.health;
+                    const sicknessDamage = Math.floor(Math.random() * 3) + 1;
+                    gameState.health = Math.max(0, gameState.health - sicknessDamage);
+                    const actualDamage = oldHealth - gameState.health;
+                    addMessage(`You feel a bit queasy after eating that. You lost ${actualDamage} health.`, 'warning');
+                    console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Rotten Food sickness. Current health: ${gameState.health}`);
+                }
+            }
+        }
+
+        /**
+         * Consumes a specific type of water to reduce thirst.
+         * @param {string} waterType - The type of water to consume ('dirtyWater' or 'cleanWater').
+         */
+        function _drinkWaterLogic(waterType) {
+            const waterConsumed = 1;
+            let thirstReduced = 0;
+
+            if (waterType === 'cleanWater') {
+                thirstReduced = 50;
+            } else if (waterType === 'dirtyWater') {
+                thirstReduced = 25;
+            } else {
+                addMessage(`Attempted to drink unknown water type: ${waterType}.`, 'warning');
+                return;
+            }
+
+            if (gameState.resources[waterType] <= 0) {
+                addMessage(`You have no ${waterType.replace(/([A-Z])/g, ' $1').toLowerCase()} to drink.`, 'warning');
+                return;
+            }
+            if (gameState.thirst <= 0) {
+                addMessage('You are not thirsty right now.', 'default');
+                return;
+            }
+
+            if (loseResource(waterType, waterConsumed)) {
+                gameState.thirst = Math.max(0, gameState.thirst - thirstReduced);
+                addMessage(`You drank some ${waterType.replace(/([A-Z])/g, ' $1').toLowerCase()}. Your thirst decreased by ${thirstReduced}.`, 'loss');
+                
+                if (waterType === 'dirtyWater' && Math.random() < 0.2) {
+                    const oldHealth = gameState.health;
+                    const sicknessDamage = Math.floor(Math.random() * 5) + 1;
+                    gameState.health = Math.max(0, gameState.health - sicknessDamage);
+                    const actualDamage = oldHealth - gameState.health;
+                    addMessage(`You feel a bit unwell after drinking that. You lost ${actualDamage} health.`, 'warning');
+                    console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Dirty Water sickness. Current health: ${gameState.health}`);
+                }
+            }
+        }
+
+        /**
+         * Uses a bandage to restore health.
+         */
+        function _useBandageLogic() {
+            if (gameState.resources.bandages <= 0) {
+                addMessage('You have no bandages.', 'warning');
+                return;
+            }
+            if (gameState.health >= 100) {
+                addMessage('You are already at full health.', 'default');
+                return;
+            }
+
+            const oldHealth = gameState.health;
+            const healthRestored = Math.floor(Math.random() * 11) + 10;
+            gameState.health = Math.min(100, gameState.health + healthRestored);
+            const actualHealthGained = gameState.health - oldHealth;
+
+            if (loseResource('bandages', 1)) {
+                if (actualHealthGained > 0) {
+                    addMessage(`You used a bandage and restored ${actualHealthGained} health.`, 'gain');
+                    console.log(`[HEALTH CHANGE] Health increased by ${actualHealthGained} due to Bandage use. Current health: ${gameState.health}`);
+                } else {
+                    addMessage('You used a bandage, but your health was already full.', 'default');
+                    console.log(`[HEALTH CHANGE] Bandage used but health already full. Current health: ${gameState.health}`);
+                }
+            }
+        }
+
+        /**
+         * Uses an energy bar to restore stamina.
+         */
+        function _useEnergyBarLogic() {
+            const energyBarConsumed = 1;
+            const staminaRestored = Math.floor(Math.random() * 16) + 15; // 15-30 stamina
+
+            if (gameState.resources.energyBar <= 0) {
+                addMessage('You have no energy bars.', 'warning');
+                return;
+            }
+            if (gameState.stamina >= gameState.maxStamina) {
+                addMessage('You are already at full stamina.', 'default');
+                return;
+            }
+
+            if (loseResource('energyBar', energyBarConsumed)) {
+                gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + staminaRestored);
+                addMessage(`You ate an energy bar and restored ${staminaRestored} stamina.`, 'gain');
+            }
+        }
+
+        /**
+         * Uses a charred document to reveal a snippet of lore.
+         */
+        function _useCharredDocumentLogic() {
+            if (gameState.resources.charredDocument <= 0) {
+                addMessage('You have no charred documents to read.', 'warning');
+                return;
+            }
+
+            if (loseResource('charredDocument', 1)) {
+                const randomSnippet = charredDocumentSnippets[Math.floor(Math.random() * charredDocumentSnippets.length)];
+                addMessage(`You decipher a Charred Document: "${randomSnippet}"`, 'atmospheric');
+            }
+        }
+
+
+        /**
+         * Searches the immediate trailer for basic supplies.
+         */
+        function searchTrailer() {
+            if (gameState.trailerSearchesToday >= 5) { // Check daily limit
+                addMessage("You've checked everywhere you can think of. Maybe you should rest.", 'warning'); // Display message when limit is hit
+                return;
+            }
+            
+            const staminaCost = 5;
+            if (gameState.stamina < staminaCost) {
+                addMessage(`You are too tired to search. You need at least ${staminaCost} stamina.`, 'warning');
+                return;
+            }
+
+            addMessage('You rummage through the debris and forgotten corners of your trailer...');
+            passTime(2);
+            gameState.stamina = Math.max(0, gameState.stamina - staminaCost);
+
+            const foundItems = {};
+
+            const foundScrap = Math.floor(Math.random() * 4); // 0-3 scrap
+            const foundRags = Math.floor(Math.random() * 3); // 0-2 rags
+            const foundDirtyWater = Math.floor(Math.random() * 3); // 0-2 dirty water
+            const foundRottenFood = Math.floor(Math.random() * 2); // 0-1 rotten food
+            const foundWood = Math.floor(Math.random() * 2); // 0-1 wood
+
+            if (foundScrap > 0) { addToInventory('scrapMetal', foundScrap); foundItems.scrapMetal = foundScrap; }
+            if (foundRags > 0) { addToInventory('rags', foundRags); foundItems.rags = foundRags; }
+            if (foundDirtyWater > 0) { addToInventory('dirtyWater', foundDirtyWater); foundItems.dirtyWater = foundDirtyWater; }
+            if (foundRottenFood > 0) { addToInventory('rottenFood', foundRottenFood); foundItems.rottenFood = foundRottenFood; }
+            if (foundWood > 0) { addToInventory('wood', foundWood); foundItems.wood = foundWood; }
+
+            let lootMessage = 'You found: ';
+            const itemEntries = Object.entries(foundItems).map(([item, amount]) => 
+                `${amount} ${item.replace(/([A-Z])/g, ' $1').toLowerCase()}${amount > 1 ? 's' : ''}`
+            );
+
+            if (itemEntries.length > 0) {
+                lootMessage += itemEntries.join(', ') + '.';
+                addMessage(lootMessage, 'gain');
+            } else {
+                addMessage('You found nothing useful this time.');
+            }
+            
+            const injuryChance = 0.2;
+            if (Math.random() < injuryChance) {
+                const oldHealth = gameState.health;
+                const damageTaken = Math.floor(Math.random() * 5) + 1;
+                gameState.health = Math.max(0, gameState.health - damageTaken);
+                const actualDamage = oldHealth - gameState.health;
+                
+                const injuryReasons = [
+                    `You cut yourself on a piece of rusty metal, losing ${actualDamage} health.`,
+                    `A sharp splinter digs deep into your hand, costing you ${actualDamage} health.`,
+                    `You disturb a nest of angry insects and get stung, losing ${actualDamage} health.`,
+                    `A loose board gives way, scraping your leg. You lose ${actualDamage} health.`,
+                    `You brush against some irritating plant, causing a rash. You lose ${actualDamage} health.`
+                ];
+                const randomReason = injuryReasons[Math.floor(Math.random() * injuryReasons.length)];
+                addMessage(`WARNING: ${randomReason}`, 'warning');
+                console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Search Trailer injury. Current health: ${gameState.health}`);
+            }
+
+            gameState.trailerSearchesToday++; // Increment daily searches
+
+            if (!gameState.hasSearchedTrailer) {
+                gameState.hasSearchedTrailer = true;
+                addMessage("You've learned how to find useful items. You might now be able to eat, drink, repair, or even craft some basic survival gear.", 'new-day');
+            }
+        }
+
+        /**
+         * Repairs the player's starting trailer, increasing its security.
+         */
+        function repairTrailer() {
+            let scrapNeeded = 2;
+            let ragsNeeded = 1;
+            let woodNeeded = 0; // Default wood cost
+
+            if (gameState.trailerSecurity >= 100) {
+                addMessage('Your trailer is as secure as it can get. No more fortifying needed here.', 'default'); // Updated log entry
+                return;
+            }
+
+            if (gameState.stamina < 10) { // Stamina cost fixed to 10
+                addMessage(`You are too tired to fortify. You need at least 10 stamina.`, 'warning'); // Updated log entry
+                return;
+            }
+            
+            // Check all resources required for the current stage
+            if (gameState.resources.scrapMetal < scrapNeeded ||
+                gameState.resources.rags < ragsNeeded ||
+                gameState.resources.wood < woodNeeded) {
+                
+                let missingResources = [];
+                if (gameState.resources.scrapMetal < scrapNeeded) missingResources.push(`${scrapNeeded - gameState.resources.scrapMetal} scrap metal`);
+                if (gameState.resources.rags < ragsNeeded) missingResources.push(`${ragsNeeded - gameState.resources.rags} rags`);
+                if (gameState.resources.wood < woodNeeded) missingResources.push(`${woodNeeded - gameState.resources.wood} wood`);
+
+                addMessage(`You need more resources to fortify your trailer: ${missingResources.join(', ')}.`, 'warning'); // Updated log entry
+                return;
+            }
+
+            performActionWithDelay(repairTrailerButton, () => {
+                // Lose all required resources
+                loseResource('scrapMetal', scrapNeeded);
+                loseResource('rags', ragsNeeded);
+                if (woodNeeded > 0) loseResource('wood', woodNeeded); // Only lose wood if it's actually needed
+
+                addMessage('You attempt to fortify your trailer...'); // Updated log entry
+                passTime(3);
+                gameState.stamina = Math.max(0, gameState.stamina - 10); // Stamina cost fixed to 10
+
+                gameState.trailerSecurity = Math.min(100, gameState.trailerSecurity + 5); // Security gain fixed to 5
+                addMessage(`You successfully fortified a section of your trailer. Security increased by 5.`, 'gain'); // Updated log entry
+            }, 5000, "Fortifying..."); // Changed text
+        }
+
+        /**
+         * Initiates exploration of the trailer park.
+         */
+        function explorePark() {
+            addMessage('You step outside your trailer, looking out into the overgrown expanse of Thornyvale. Where to begin?');
+            gameState.currentLocation = 'thornyvale';
+            gameState.currentParkView = 'overview'; // Set to overview when entering park
+            // updateUI is called by performActionWithDelay's callback
+        }
+
+        /**
+         * Performs the initial survey of the surrounding area in Thornyvale.
+         */
+        function surveySurrounding() {
+            const staminaCost = 5;
+            if (gameState.stamina < staminaCost) {
+                addMessage(`You are too tired to survey. You need at least ${staminaCost} stamina.`, 'warning');
+                return;
+            }
+
+            addMessage('You carefully survey the immediate surroundings of Thornyvale, trying to get your bearings...');
+            passTime(2);
+            gameState.stamina = Math.max(0, gameState.stamina - staminaCost);
+
+            gameState.hasSurveyedPark = true; // Mark park as surveyed
+            // Set discovered to true for the main sections now
+            gameState.thornyvaleMap.northSection.discovered = true;
+            gameState.thornyvaleMap.southSection.discovered = true;
+            gameState.thornyvaleMap.communityCenter.discovered = true; 
+            addMessage('You\'ve gained a better understanding of Thornyvale. New sections are now visible on your map.', 'new-day');
+            // updateUI isCalled by performActionWithDelay's callback
+        }
+
+        /**
+         * Enters a specific main section of Thornyvale (like Community Center, North, South).
+         * This function changes the currentParkView.
+         * @param {string} sectionName - The key for the section in gameState.thornyvaleMap.
+         */
+        function exploreThornyvaleSection(sectionName) {
+            const section = gameState.thornyvaleMap[sectionName];
+            if (!section) {
+                console.error('Invalid section name:', sectionName);
+                return;
+            }
+            const staminaCost = 15;
+            if (gameState.stamina < staminaCost) {
+                addMessage(`You are too tired to explore this area. You need at least ${staminaCost} stamina.`, 'warning');
+                return;
+            }
+
+            // Special logic for North Section access
+            if (sectionName === 'northSection') {
+                if (gameState.resources.boltCutters <= 0) {
+                    addMessage('The path to the North Section is blocked by a heavy fence and a chained gate. You need something strong to cut through it.', 'warning');
+                    updateUI(); // Update UI to reflect no change in view
+                    return; // Stop function execution
+                } else {
+                    addMessage('You use the bolt cutters to cut through the heavy chain on the gate. The North Section is now accessible.', 'gain');
+                    // Removed: loseResource('boltCutters', 1); // Bolt cutters are NOT consumed
+                }
+            }
+
+
+            addMessage(`You begin exploring the ${section.description.toLowerCase().split(' ')[0]}...`);
+            passTime(4);
+            gameState.stamina = Math.max(0, gameState.stamina - staminaCost);
+
+            // Set currentParkView to the specific section to show its sub-buttons
+            gameState.currentParkView = sectionName;
+
+            // Unlock sub-locations if this is the first time entering this main section
+            if (sectionName === 'communityCenter') {
+                if (!gameState.thornyvaleMap.communityCenter.subLocations.office.discovered) {
+                    gameState.thornyvaleMap.communityCenter.subLocations.office.discovered = true;
+                    gameState.thornyvaleMap.communityCenter.subLocations.kitchen.discovered = true;
+                    gameState.thornyvaleMap.communityCenter.subLocations.gym.discovered = true;
+                    gameState.thornyvaleMap.communityCenter.subLocations.dilapidatedshack.discovered = true; // New: Discover Dilapidated Shack
+                    addMessage('You step inside the Community Center. It\'s quiet... too quiet. You notice several distinct areas you could search.', 'new-day');
+                } else {
+                    addMessage('You re-enter the Community Center. The silence is still unsettling.');
+                }
+            } else if (sectionName === 'northSection') {
+                addMessage('You enter the North Section. Overgrown and dense, it hides many secrets.');
+                // Unlock Hoarder's Haven when entering North Section for the first time
+                if (!gameState.thornyvaleMap.northSection.subLocations.hoardershaven.discovered) {
+                    gameState.thornyvaleMap.northSection.subLocations.hoardershaven.discovered = true;
+                    addMessage('You push through thick undergrowth in the North Section and find a strangely cluttered trailer: The Hoarder\'s Haven.', 'new-day');
+                }
+                // Unlock Overgrown Oasis when entering North Section for the first time
+                if (!gameState.thornyvaleMap.northSection.subLocations.overgrownoasis.discovered) { // New: Discover Overgrown Oasis
+                    gameState.thornyvaleMap.northSection.subLocations.overgrownoasis.discovered = true;
+                    addMessage('A hidden path leads to a trailer almost consumed by vines: The Overgrown Oasis.', 'new-day');
+                }
+                // Unlock Burned-Out Shell when entering North Section for the first time
+                if (!gameState.thornyvaleMap.northSection.subLocations.burnedoutshell.discovered) { // New: Discover Burned-Out Shell
+                    gameState.thornyvaleMap.northSection.subLocations.burnedoutshell.discovered = true;
+                    addMessage('You stumble upon a charred husk of a trailer, the Burned-Out Shell, hinting at a past tragedy.', 'new-day');
+                }
+                addMessage('You re-enter the North Section. The overgrown paths are familiar.');
+            } else if (sectionName === 'southSection') {
+                addMessage('You enter the South Section. It feels more exposed here, but there might be hidden caches.');
+                // Future: unlock specific south locations here
+            }
+
+            if (Math.random() < section.zombieChance) {
+                const oldHealth = gameState.health;
+                const damageTaken = Math.floor(Math.random() * 10) + 5;
+                gameState.health = Math.max(0, gameState.health - damageTaken);
+                const actualDamage = oldHealth - gameState.health;
+                addMessage(`DANGER! You encountered a shambling zombie! You took ${actualDamage} damage fighting it off.`, 'warning');
+                console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Zombie in ${sectionName}. Current health: ${gameState.health}`);
+            } else {
+                addMessage('The area seems clear... for now.');
+            }
+            // updateUI is called by performActionWithDelay's callback
+        }
+
+        /**
+         * Scavenges a specific sub-location within a main park section.
+         * @param {string} subLocationName - The key for the sub-location (e.g., 'communityCenterOffice').
+         */
+        function scavengeLocation(subLocationName) {
+            const parentSectionName = subLocationName.startsWith('communityCenter') ? 'communityCenter' : 
+                                      (subLocationName.startsWith('northSection') ? 'northSection' : null);
+
+
+            if (!parentSectionName) {
+                console.error('Invalid sub-location name:', subLocationName);
+                addMessage(`You try to scavenge an unknown area, but find nothing.`, 'warning');
+                updateUI();
+                return;
+            }
+
+            const subLocationKey = subLocationName.replace(parentSectionName, '').toLowerCase();
+            const subLocation = gameState.thornyvaleMap[parentSectionName].subLocations[subLocationKey];
+
+            if (!subLocation) { 
+                console.error(`Sub-location ${subLocationName} not found in subLocations map.`);
+                addMessage(`You try to scavenge the ${getDisplayLocationName(subLocationName)}, but find nothing.`, 'warning');
+                updateUI();
+                return;
+            }
+
+            const staminaCost = 10; // Scavenging a specific location costs stamina
+            if (gameState.stamina < staminaCost) {
+                addMessage(`You are too tired to scavenge here. You need at least ${staminaCost} stamina.`, 'warning');
+                return;
+            }
+
+            let flavorMessage = '';
+            if (subLocationName === 'communityCenterOffice') {
+                const messages = [
+                    'You meticulously search the overturned desks and file cabinets in the office.',
+                    'Dust motes dance in the faint light as you sift through forgotten paperwork in the office.',
+                    'The silence of the office is broken only by the rustle of your movements as you scavenge.'
+                ];
+                flavorMessage = messages[Math.floor(Math.random() * messages.length)];
+            } else if (subLocationName === 'communityCenterKitchen') {
+                const messages = [
+                    'You cautiously navigate the grimy kitchen, checking rusted appliances and overturned shelves.',
+                    'The lingering smell of decay in the kitchen makes your stomach churn as you search.',
+                    'You pry open old pantry doors in the kitchen, hoping for anything edible or potable.'
+                ];
+                flavorMessage = messages[Math.floor(Math.random() * messages.length)];
+            } else if (subLocationName === 'communityCenterGym') {
+                const messages = [
+                    'You move through the echoing gym, past scattered weights and torn mats, searching for anything useful.',
+                    'The broken windows of the gym let in a cold breeze as you inspect the equipment.',
+                    'You carefully check the locker rooms and storage areas of the gym, wary of hidden dangers.'
+                ];
+                flavorMessage = messages[Math.floor(Math.random() * messages.length)];
+            } else if (subLocationName === 'communityCenterdilapidatedshack') { // New: Dilapidated Shack flavor
+                const messages = [
+                    'You squeeze through the broken door of the dilapidated shack, the air inside thick with dust and decay.',
+                    'The shack creaks ominously as you search its flimsy interior, every shadow seeming to hide something.',
+                    'You carefully sift through the meager belongings left in the dilapidated shack, hoping for a hidden gem.'
+                ];
+                flavorMessage = messages[Math.floor(Math.random() * messages.length)];
+            } else if (subLocationName === 'northSectionhoardershaven') { // New flavor for Hoarder's Haven
+                const messages = [
+                    'You carefully pick through the mountains of junk in the Hoarder\'s Haven, trying not to disturb anything fragile.',
+                    'The sheer volume of discarded items in this trailer is overwhelming as you search for anything useful.',
+                    'Every step in the Hoarder\'s Haven is a risk, as unstable piles of debris threaten to collapse around you.'
+                ];
+                flavorMessage = messages[Math.floor(Math.random() * messages.length)];
+            } else if (subLocationName === 'northSectionovergrownoasis') { // New flavor for Overgrown Oasis
+                const messages = [
+                    'You push aside thick vines and enter the damp interior of the Overgrown Oasis.',
+                    'The air in the Overgrown Oasis is cool and smells of damp earth and forgotten plants as you search.',
+                    'Sunlight barely filters through the dense foliage covering the Overgrown Oasis, making your search difficult.'
+                ];
+                flavorMessage = messages[Math.floor(Math.random() * messages.length)];
+            } else if (subLocationName === 'northSectionburnedoutshell') { // New flavor for Burned-Out Shell
+                const messages = [
+                    'You carefully step through the charred remains of the Burned-Out Shell, the air still acrid with smoke.',
+                    'The interior of the Burned-Out Shell is a skeletal ruin, every surface blackened and brittle. You search cautiously.',
+                    'Twisted metal and burnt debris make navigating the Burned-Out Shell treacherous as you look for anything salvageable.'
+                ];
+                flavorMessage = messages[Math.floor(Math.random() * messages.length)];
+            }
+            addMessage(flavorMessage);
+
+
+            passTime(2); // Scavenging takes less time than exploring a whole section
+            gameState.stamina = Math.max(0, gameState.stamina - staminaCost);
+
+            const foundItemsList = []; // To build a list of what was actually found
+            // Loot generation specific to sub-locations
+            if (subLocationName === 'communityCenterOffice') {
+                const amountScrap = Math.floor(Math.random() * 3); // 0-2
+                const amountComponents = Math.floor(Math.random() * 2); // 0-1
+                if (amountScrap > 0) { addToInventory('scrapMetal', amountScrap); foundItemsList.push({item: 'scrapMetal', amount: amountScrap}); }
+                if (amountComponents > 0) { addToInventory('components', amountComponents); foundItemsList.push({item: 'components', amount: amountComponents}); }
+            } else if (subLocationName === 'communityCenterKitchen') {
+                const amountRottenFood = Math.floor(Math.random() * 3); // 0-2
+                const amountDirtyWater = Math.floor(Math.random() * 3); // 0-2
+                if (amountRottenFood > 0) { addToInventory('rottenFood', amountRottenFood); foundItemsList.push({item: 'rottenFood', amount: amountRottenFood}); }
+                if (amountDirtyWater > 0) { addToInventory('dirtyWater', amountDirtyWater); foundItemsList.push({item: 'dirtyWater', amount: amountDirtyWater}); }
+            } else if (subLocationName === 'communityCenterGym') {
+                const amountRags = Math.floor(Math.random() * 4); // 0-3
+                const amountEnergyBar = (Math.random() < 0.25) ? 1 : 0; // Increased to 25% chance
+                if (amountRags > 0) { addToInventory('rags', amountRags); foundItemsList.push({item: 'rags', amount: amountRags}); }
+                if (amountEnergyBar > 0) { addToInventory('energyBar', amountEnergyBar); foundItemsList.push({item: 'energyBar', amount: amountEnergyBar}); }
+            } else if (subLocationName === 'communityCenterdilapidatedshack') { // New: Loot for Dilapidated Shack
+                const amountWood = Math.floor(Math.random() * 2); // 0-1 wood
+                const amountScrap = Math.floor(Math.random() * 2); // 0-1 scrap
+                const amountBoltCutters = (!gameState.hasFoundBoltCutters && Math.random() < 0.1) ? 1 : 0; // 10% chance, only once
+
+                if (amountWood > 0) { addToInventory('wood', amountWood); foundItemsList.push({item: 'wood', amount: amountWood}); }
+                if (amountScrap > 0) { addToInventory('scrapMetal', amountScrap); foundItemsList.push({item: 'scrapMetal', amount: amountScrap}); }
+                if (amountBoltCutters > 0) { addToInventory('boltCutters', amountBoltCutters); foundItemsList.push({item: 'boltCutters', amount: amountBoltCutters}); }
+            } else if (subLocationName === 'northSectionhoardershaven') { // Loot for Hoarder's Haven
+                const amountComponents = Math.floor(Math.random() * 3) + 1; // 1-3 components
+                const amountRags = Math.floor(Math.random() * 3) + 1; // 1-3 rags
+                const amountEnergyBar = (Math.random() < 0.15) ? 1 : 0; // 15% chance
+                const amountFrontBikeTire = (!gameState.hasFoundFrontBikeTire && Math.random() < 0.05) ? 1 : 0; // 5% chance, only once
+
+                if (amountComponents > 0) { addToInventory('components', amountComponents); foundItemsList.push({item: 'components', amount: amountComponents}); }
+                if (amountRags > 0) { addToInventory('rags', amountRags); foundItemsList.push({item: 'rags', amount: amountRags}); }
+                if (amountEnergyBar > 0) { addToInventory('energyBar', amountEnergyBar); foundItemsList.push({item: 'energyBar', amount: amountEnergyBar}); }
+                if (amountFrontBikeTire > 0) { addToInventory('frontBikeTire', amountFrontBikeTire); foundItemsList.push({item: 'frontBikeTire', amount: amountFrontBikeTire}); }
+            } else if (subLocationName === 'northSectionburnedoutshell') { // Loot for Burned-Out Shell
+                const amountWood = Math.floor(Math.random() * 3) + 1; // 1-3 wood
+                const amountScrap = Math.floor(Math.random() * 3); // 0-2 scrap
+                const amountCharredDocument = (Math.random() < 0.1) ? 1 : 0; // 10% chance
+
+                if (amountWood > 0) { addToInventory('wood', amountWood); foundItemsList.push({item: 'wood', amount: amountWood}); }
+                if (amountScrap > 0) { addToInventory('scrapMetal', amountScrap); foundItemsList.push({item: 'scrapMetal', amount: amountScrap}); }
+                if (amountCharredDocument > 0) { 
+                    addToInventory('charredDocument', amountCharredDocument); 
+                    const randomSnippet = charredDocumentSnippets[Math.floor(Math.random() * charredDocumentSnippets.length)];
+                    addMessage(`You found a Charred Document! It reads: "${randomSnippet}"`, 'gain');
+                    foundItemsList.push({item: 'charredDocument', amount: amountCharredDocument}); 
+                }
+            } else if (subLocationName === 'northSectionovergrownoasis') { // Loot for Overgrown Oasis
+                const amountDirtyWater = Math.floor(Math.random() * 4); // 0-3 dirty water
+                const amountRottenFood = Math.floor(Math.random() * 3); // 0-2 rotten food
+                const amountMachete = (!gameState.hasFoundMachete && Math.random() < 0.1) ? 1 : 0; // 10% chance for machete, only once
+
+                if (amountDirtyWater > 0) { addToInventory('dirtyWater', amountDirtyWater); foundItemsList.push({item: 'dirtyWater', amount: amountDirtyWater}); }
+                if (amountRottenFood > 0) { addToInventory('rottenFood', amountRottenFood); foundItemsList.push({item: 'rottenFood', amount: amountRottenFood}); }
+                if (amountMachete > 0) { addToInventory('machete', amountMachete); foundItemsList.push({item: 'machete', amount: amountMachete}); }
+            }
+
+
+            let lootMessage = '';
+            const itemEntries = foundItemsList.map(item => 
+                `${item.amount} ${item.item.replace(/([A-Z])/g, ' $1').toLowerCase()}${item.amount > 1 ? 's' : ''}`
+            );
+
+            if (itemEntries.length > 0) {
+                // If Charred Document was found, its message is already added, so don't duplicate.
+                if (!foundItemsList.some(item => item.item === 'charredDocument')) {
+                    lootMessage = 'You found: ' + itemEntries.join(', ') + '.';
+                    addMessage(lootMessage, 'gain');
+                } else if (itemEntries.length > 1) { // If other items were found *with* charred document
+                    const otherItems = foundItemsList.filter(item => item.item !== 'charredDocument');
+                    if (otherItems.length > 0) {
+                         lootMessage = 'You also found: ' + otherItems.map(item => `${item.amount} ${item.item.replace(/([A-Z])/g, ' $1').toLowerCase()}${item.amount > 1 ? 's' : ''}`).join(', ') + '.';
+                         addMessage(lootMessage, 'gain');
+                    }
+                }
+            } else {
+                addMessage('You found nothing useful this time.', 'default'); // Ensure a message is always displayed
+            }
+
+            // Hazard check for sub-location
+            let hazardOccurred = false;
+            let damageTaken = 0;
+            let hazardMessage = '';
+
+            const hazardRoll = Math.random();
+
+            if (subLocationName === 'northSectionburnedoutshell') { // Specific hazards for Burned-Out Shell
+                // Extra stamina cost for Burned-Out Shell, applied always when scavenging it
+                gameState.stamina = Math.max(0, gameState.stamina - 5);
+                addMessage(`The unstable footing in the Burned-Out Shell drains an extra 5 stamina.`, 'loss');
+
+                // Prioritized hazards for Burned-Out Shell
+                if (hazardRoll < 0.05) { // 5% chance for structural collapse
+                    const oldHealth = gameState.health;
+                    damageTaken = Math.floor(Math.random() * (12 - 5 + 1)) + 5; // 5-12 damage
+                    gameState.health = Math.max(0, gameState.health - damageTaken);
+                    const actualDamage = oldHealth - gameState.health;
+                    hazardMessage = `WARNING! The unstable structure of the Burned-Out Shell shifts, causing ${actualDamage} damage!`;
+                    console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Structural Collapse. Current health: ${gameState.health}`);
+                    hazardOccurred = true;
+                } else if (hazardRoll < (0.05 + 0.15)) { // 15% chance for sharp metal injury
+                    const oldHealth = gameState.health;
+                    damageTaken = Math.floor(Math.random() * (6 - 2 + 1)) + 2; // 2-6 damage
+                    gameState.health = Math.max(0, gameState.health - damageTaken);
+                    const actualDamage = oldHealth - gameState.health;
+                    hazardMessage = `You cut yourself on twisted metal in the Burned-Out Shell, losing ${actualDamage} health.`;
+                    console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Sharp Metal Injury. Current health: ${gameState.health}`);
+                    hazardOccurred = true;
+                }
+            } else if (subLocationName === 'northSectionovergrownoasis') {
+                if (hazardRoll < 0.05) { // 5% chance for zombie attack
+                    const oldHealth = gameState.health;
+                    damageTaken = Math.floor(Math.random() * (10 - 2 + 1)) + 2; // 2-10 damage
+                    gameState.health = Math.max(0, gameState.health - damageTaken);
+                    const actualDamage = oldHealth - gameState.health;
+                    hazardMessage = `DANGER! You encountered a shambling zombie in the ${getDisplayLocationName(subLocationName)}! You took ${actualDamage} damage fighting it off.`;
+                    console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Zombie Encounter. Current health: ${gameState.health}`);
+                    hazardOccurred = true;
+                } else if (hazardRoll < (0.05 + 0.10)) { // 10% chance for poison ivy
+                    const oldHealth = gameState.health;
+                    damageTaken = Math.floor(Math.random() * (5 - 1 + 1)) + 1; // 1-5 damage
+                    gameState.health = Math.max(0, gameState.health - damageTaken);
+                    const actualDamage = oldHealth - gameState.health;
+                    hazardMessage = `You brushed against some poison ivy in the ${getDisplayLocationName(subLocationName)} and lost ${actualDamage} health.`;
+                    console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Poison Ivy. Current health: ${gameState.health}`);
+                    hazardOccurred = true;
+                } else if (hazardRoll < (0.05 + 0.10 + 0.10)) { // 10% chance for thorns
+                    const oldHealth = gameState.health;
+                    damageTaken = Math.floor(Math.random() * (6 - 2 + 1)) + 2; // 2-6 damage
+                    gameState.health = Math.max(0, gameState.health - damageTaken);
+                    const actualDamage = oldHealth - gameState.health;
+                    hazardMessage = `You got tangled in thorny bushes in the ${getDisplayLocationName(subLocationName)} and lost ${actualDamage} health.`;
+                    console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Thorns. Current health: ${gameState.health}`);
+                    hazardOccurred = true;
+                }
+            } else if (subLocationName === 'communityCenterdilapidatedshack') { // New: Dilapidated Shack hazards
+                if (hazardRoll < 0.05) { // 5% chance for zombie attack
+                    const oldHealth = gameState.health;
+                    damageTaken = Math.floor(Math.random() * (10 - 2 + 1)) + 2; // 2-10 damage
+                    gameState.health = Math.max(0, gameState.health - damageTaken);
+                    const actualDamage = oldHealth - gameState.health;
+                    hazardMessage = `DANGER! You encountered a shambling zombie in the ${getDisplayLocationName(subLocationName)}! You took ${actualDamage} damage fighting it off.`;
+                    console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Zombie in Dilapidated Shack. Current health: ${gameState.health}`);
+                    hazardOccurred = true;
+                }
+            }
+            // Generic zombie chance for other locations if no specific hazard for them
+            else if (Math.random() < subLocation.zombieChance && !hazardOccurred) { // General zombie chance for other locations
+                const oldHealth = gameState.health;
+                damageTaken = Math.floor(Math.random() * 8) + 3; // 3-10 damage for sub-location zombies
+                gameState.health = Math.max(0, gameState.health - damageTaken);
+                const actualDamage = oldHealth - gameState.health;
+                hazardMessage = `DANGER! You encountered a shambling zombie in the ${getDisplayLocationName(subLocationName)}! You took ${actualDamage} damage fighting it off.`;
+                console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to General Zombie. Current health: ${gameState.health}`);
+                hazardOccurred = true;
+            }
+
+            if (hazardOccurred) {
+                addMessage(hazardMessage, 'warning');
+            } else if (subLocationName !== 'northSectionburnedoutshell') { // Avoid double message if extra stamina was used
+                addMessage('The area seems clear... for now.', 'atmospheric');
+            }
+            // updateUI is called by performActionWithDelay's callback
+        }
+
+
+        /**
+         * Returns the player to the main Thornyvale hub.
+         */
+        function returnToThornyvaleHub() {
+            addMessage('You step back out into the main Thornyvale area.');
+            gameState.currentParkView = 'overview';
+            // updateUI is called by performActionWithDelay's callback
+        }
+
+        /**
+         * Returns the player to their trailer.
+         */
+        function returnToTrailer() {
+            addMessage('You head back to the relative safety of your trailer.');
+            gameState.currentLocation = 'trailer';
+            gameState.currentParkView = 'overview'; // Reset park view when returning to trailer
+            // updateUI is called by performActionWithDelay's callback
+        }
+        
+        // --- Cooldown Timer ---
+        let searchCooldownInterval;
+
+        function startSearchCooldownTimer() {
+            if (searchCooldownInterval) clearInterval(searchCooldownInterval);
+
+            searchCooldownInterval = setInterval(() => {
+                updateUI();
+                if (gameState.trailerSearchCooldownEndTime <= Date.now()) {
+                    clearInterval(searchCooldownInterval);
+                    searchCooldownInterval = null;
+                    updateUI();
+                }
+            }, 1000);
+        }
+
+        // --- Crafting Functions ---
+
+        /**
+         * Crafts a campfire.
+         */
+        function craftCampfire() {
+            const woodNeeded = 2;
+            const staminaCost = 10;
+
+            if (gameState.hasCampfire) {
+                addMessage('You already have a campfire.', 'default');
+                return;
+            }
+            if (gameState.resources.wood < woodNeeded) {
+                addMessage(`You need ${woodNeeded} wood to craft a campfire.`, 'warning');
+                return;
+            }
+            if (gameState.stamina < staminaCost) {
+                addMessage(`You are too tired to craft. You need at least ${staminaCost} stamina.`, 'warning');
+                return;
+            }
+
+            performActionWithDelay(craftCampfireButton, () => {
+                if (loseResource('wood', woodNeeded)) {
+                    gameState.stamina = Math.max(0, gameState.stamina - staminaCost);
+                    gameState.hasCampfire = true;
+                    addMessage('You successfully built a crude campfire. You can now cook and boil water.', 'gain');
+                }
+            }, 5000, "Building...");
+        }
+
+        /**
+         * Cooks rotten food into cooked food.
+         */
+        function cookFood() {
+            const rottenFoodNeeded = 1;
+            const woodNeeded = 1;
+            const staminaCost = 1;
+
+            if (!gameState.hasCampfire) {
+                addMessage('You need a campfire to cook food.', 'warning');
+                return;
+            }
+            if (gameState.resources.rottenFood < rottenFoodNeeded) {
+                addMessage(`You need ${rottenFoodNeeded} rotten food to cook.`, 'warning');
+                return;
+            }
+            if (gameState.resources.wood < woodNeeded) {
+                addMessage(`You need ${woodNeeded} wood to cook.`, 'warning');
+                return;
+            }
+            if (gameState.stamina < staminaCost) {
+                addMessage(`You are too tired to cook. You need at least ${staminaCost} stamina.`, 'warning');
+                return;
+            }
+
+            performActionWithDelay(cookFoodButton, () => {
+                if (loseResource('rottenFood', rottenFoodNeeded) && loseResource('wood', woodNeeded)) {
+                    gameState.stamina = Math.max(0, gameState.stamina - staminaCost);
+                    addToInventory('cookedFood', 1);
+                    addMessage(`You cooked the rotten food, using ${woodNeeded} wood. It looks much more appetizing now.`, 'gain');
+                }
+            }, 4000, "Fueling Fire");
+        }
+
+        /**
+         * Boils dirty water into clean water.
+         */
+        function boilWater() {
+            const dirtyWaterNeeded = 1;
+            const woodNeeded = 1;
+            const staminaCost = 1;
+
+            if (!gameState.hasCampfire) {
+                addMessage('You need a campfire to boil water.', 'warning');
+                return;
+            }
+            if (gameState.resources.dirtyWater < dirtyWaterNeeded) {
+                addMessage(`You need ${dirtyWaterNeeded} dirty water to boil.`, 'warning');
+                return;
+            }
+            if (gameState.resources.wood < woodNeeded) {
+                addMessage(`You need ${woodNeeded} wood to boil water.`, 'warning');
+                return;
+            }
+            if (gameState.stamina < staminaCost) {
+                addMessage(`You are too tired to boil water. You need at least ${staminaCost} stamina.`, 'warning');
+                return;
+            }
+
+            performActionWithDelay(boilWaterButton, () => {
+                if (loseResource('dirtyWater', dirtyWaterNeeded) && loseResource('wood', woodNeeded)) {
+                    gameState.stamina = Math.max(0, gameState.stamina - staminaCost);
+                    addToInventory('cleanWater', 1);
+                    addMessage(`You boiled the dirty water, using ${woodNeeded} wood. It now looks safe to drink.`, 'gain');
+                }
+            }, 4000, "Fueling Fire");
+        }
+
+        /**
+         * Crafts rags into bandages.
+         */
+        function craftBandages() {
+            const ragsNeeded = 2;
+            const staminaCost = 5;
+
+            if (gameState.resources.rags < ragsNeeded) {
+                addMessage(`You need ${ragsNeeded} rags to craft bandages.`, 'warning');
+                return;
+            }
+            if (gameState.stamina < staminaCost) {
+                addMessage(`You are too tired to craft. You need at least ${staminaCost} stamina.`, 'warning');
+                return;
+            }
+
+            performActionWithDelay(craftBandagesButton, () => {
+                if (loseResource('rags', ragsNeeded)) {
+                    gameState.stamina = Math.max(0, gameState.stamina - staminaCost);
+                    addToInventory('bandages', 1);
+                    addMessage('You crafted a usable bandage from old rags.', 'gain');
+                }
+            }, 3000, "Crafting bandages...");
+        }
+
+
+        // --- Save/Load Functions ---
+
+        /**
+         * Saves the current game state to localStorage.
+         */
+        function saveGame() {
+            try {
+                localStorage.setItem('thornyvaleSave', JSON.stringify(gameState));
+                addMessage('Game saved successfully!');
+            } catch (e) {
+                console.error('Error saving game:', e);
+                addMessage('Failed to save game. Your browser might be full or blocking storage.');
+            }
+        }
+
+        /**
+         * Loads the game state from localStorage.
+         */
+        function loadGame() {
+            try {
+                const savedState = localStorage.getItem('thornyvaleSave');
+                if (savedState) {
+                    gameState = JSON.parse(savedState);
+                    // Ensure new properties exist for old saves
+                    if (gameState.hasLookedAround === undefined) gameState.hasLookedAround = true;
+                    if (gameState.hasSearchedTrailer === undefined) gameState.hasSearchedTrailer = true;
+                    if (gameState.hasCampfire === undefined) gameState.hasCampfire = false;
+                    if (gameState.resources.cookedFood === undefined) gameState.resources.cookedFood = 0;
+                    if (gameState.resources.bandages === undefined) gameState.resources.bandages = 0;
+                    if (gameState.maxStamina === undefined) gameState.maxStamina = 100;
+                    if (gameState.resources.energyBar === undefined) gameState.resources.energyBar = 0; // Initialize new resource
+                    if (gameState.trailerSearchesToday === undefined) gameState.trailerSearchesToday = 0; // Initialize new daily search counter
+                    if (gameState.hasSurveyedPark === undefined) gameState.hasSurveyedPark = false; // Initialize new survey state
+                    if (gameState.hasFoundRags === undefined) gameState.hasFoundRags = false; // Initialize new rags state
+                    if (gameState.currentParkView === undefined) gameState.currentParkView = 'overview'; // Initialize new park view state
+                    if (gameState.resources.machete === undefined) gameState.resources.machete = 0; // Initialize machete
+                    if (gameState.hasFoundMachete === undefined) gameState.hasFoundMachete = false; // Initialize hasFoundMachete
+                    if (gameState.resources.charredDocument === undefined) gameState.resources.charredDocument = 0; // Initialize charredDocument
+                    if (gameState.resources.frontBikeTire === undefined) gameState.resources.frontBikeTire = 0; // Initialize frontBikeTire
+                    if (gameState.hasFoundFrontBikeTire === undefined) gameState.hasFoundFrontBikeTire = false; // Initialize hasFoundFrontBikeTire
+                    if (gameState.resources.boltCutters === undefined) gameState.resources.boltCutters = 0; // Initialize boltCutters
+                    if (gameState.hasFoundBoltCutters === undefined) gameState.hasFoundBoltCutters = false; // Initialize hasFoundBoltCutters
+                    if (gameState.hasFoundMaterials === undefined) gameState.hasFoundMaterials = false; // Initialize hasFoundMaterials
+                    if (gameState.hasFoundSupplies === undefined) gameState.hasFoundSupplies = false; // Initialize hasFoundSupplies
+
+                    // Initialize new map locations if loading an old save
+                    if (gameState.thornyvaleMap.communityCenter.subLocations === undefined) {
+                        gameState.thornyvaleMap.communityCenter.subLocations = {
+                            office: { discovered: false, description: 'a dusty office filled with overturned desks and scattered papers.', zombieChance: 0.1 },
+                            kitchen: { discovered: false, description: 'a grimy kitchen, surprisingly intact but with a lingering smell of decay.', zombieChance: 0.2 },
+                            gym: { discovered: false, description: 'a large, echoing gym with broken windows and scattered sports equipment.', zombieChance: 0.3 },
+                            dilapidatedshack: { discovered: false, description: 'a small, dilapidated shack, barely standing.', zombieChance: 0.15 }
+                        };
+                    }
+                    if (gameState.thornyvaleMap.northSection.subLocations === undefined) { 
+                        gameState.thornyvaleMap.northSection.subLocations = {
+                            hoardershaven: { discovered: false, description: 'a chaotic mess of discarded junk, boxes, and tarps.', zombieChance: 0.3 },
+                            overgrownoasis: { discovered: false, description: 'vines and thick bushes have almost entirely swallowed this small trailer.', zombieChance: 0.05 },
+                            burnedoutshell: { discovered: false, description: 'a charred husk, ravaged by fire.', zombieChance: 0.0 }
+                        };
+                    }
+
+
+                    addMessage('Game loaded from previous save.');
+                    if (gameState.trailerSearchCooldownEndTime > Date.now()) {
+                        startSearchCooldownTimer();
+                    }
+                    if (gameLog.children.length === 0) {
+                        addMessage('Your first priority: secure your home.');
+                        addMessage('Years after the collapse, you find awake on a stained mattress in a dilapidated trailer.');
+                        addMessage('Welcome to Thornyvale: Rust and Ruin.');
+                    }
+                } else {
+                    addMessage('No saved game found. Starting a new game.');
+                    addMessage('Your first priority: secure your home.');
+                    addMessage('Years after the collapse, you find awake on a stained mattress in a dilapidated trailer.');
+                    addMessage('Welcome to Thornyvale: Rust and Ruin.');
+                }
+            } catch (e) {
+                console.error('Error loading game:', e);
+                addMessage('Failed to load game. Starting a new game.');
+                gameState = {
+                    health: 100, stamina: 50, hunger: 0, thirst: 0, day: 1, currentHour: 6,
+                    trailerSecurity: 10, // Changed from 0 to 10
+                    trailerSearchesLeft: 3,
+                    trailerSearchCooldownEndTime: 0,
+                    currentLocation: 'trailer',
+                    hasLookedAround: false,
+                    hasSearchedTrailer: false,
+                    hasCampfire: false,
+                    maxStamina: 100,
+                    trailerSearchesToday: 0,
+                    hasSurveyedPark: false,
+                    hasFoundRags: false,
+                    hasFoundMachete: false,
+                    hasFoundFrontBikeTire: false,
+                    hasFoundBoltCutters: false,
+                    hasFoundMaterials: false,
+                    hasFoundSupplies: false,
+                    currentParkView: 'overview',
+                    thornyvaleMap: {
+                        northSection: { discovered: false, scavengedCount: 0, description: 'A dense, overgrown part of the park with many collapsed trailers.', zombieChance: 0.3, subLocations: { hoardershaven: { discovered: false, description: 'a chaotic mess of discarded junk, boxes, and tarps.', zombieChance: 0.3 }, overgrownoasis: { discovered: false, description: 'vines and thick bushes have almost entirely swallowed this small trailer.', zombieChance: 0.05 }, burnedoutshell: { discovered: false, description: 'a charred husk, ravaged by fire.', zombieChance: 0.0 } } },
+                        southSection: { discovered: false, scavengedCount: 0, description: 'More open, with fewer trailers but some old sheds and garages.', zombieChance: 0.2, subLocations: {} },
+                        communityCenter: { 
+                            discovered: false, 
+                            scavengedCount: 0, 
+                                                        description: 'The dilapidated community center, once a gathering spot, now eerily silent.', 
+                            zombieChance: 0.4,
+                            subLocations: {
+                                office: { discovered: false, description: 'a dusty office filled with overturned desks and scattered papers.', zombieChance: 0.1 },
+                                kitchen: { discovered: false, description: 'a grimy kitchen, surprisingly intact but with a lingering smell of decay.', zombieChance: 0.2 },
+                                gym: { discovered: false, description: 'a large, echoing gym with broken windows and scattered sports equipment.', zombieChance: 0.3 },
+                                dilapidatedshack: { discovered: false, description: 'a small, dilapidated shack, barely standing.', zombieChance: 0.15 }
+                            }
+                        },
+                    },
+                    resources: { scrapMetal: 0, rags: 0, dirtyWater: 0, rottenFood: 0, wood: 0, components: 0, cleanWater: 0, cookedFood: 0, bandages: 0, energyBar: 0, machete: 0, charredDocument: 0, frontBikeTire: 0, boltCutters: 0 }
+                };
+                addMessage('Your first priority: secure your home.');
+                addMessage('Years after the collapse, you find awake on a stained mattress in a dilapidated trailer.');
+                addMessage('Welcome to Thornyvale: Rust and Ruin.');
+            }
+            updateUI();
+        }
+
+        // --- Event Listeners ---
+        lookAroundButton.addEventListener('click', () => performActionWithDelay(lookAroundButton, lookAround, 5000, "Surveying..."));
+        sleepButton.addEventListener('click', () => performActionWithDelay(sleepButton, sleep, 8000, "Sleeping..."));
+        searchTrailerButton.addEventListener('click', () => performActionWithDelay(searchTrailerButton, searchTrailer, 4000, "Searching..."));
+        repairTrailerButton.addEventListener('click', () => performActionWithDelay(repairTrailerButton, repairTrailer, 5000, "Fortifying..."));
+        saveGameButton.addEventListener('click', () => performActionWithDelay(saveGameButton, saveGame, 1000, "Saving..."));
+
+        // Exploration Buttons
+        exploreParkButton.addEventListener('click', () => performActionWithDelay(exploreParkButton, explorePark, 1000, "Stepping out..."));
+        exploreNorthSectionButton.addEventListener('click', () => performActionWithDelay(exploreNorthSectionButton, () => exploreThornyvaleSection('northSection'), 6000, "Exploring..."));
+        exploreSouthSectionButton.addEventListener('click', () => performActionWithDelay(exploreSouthSectionButton, () => exploreThornyvaleSection('southSection'), 6000, "Exploring..."));
+        exploreCommunityCenterButton.addEventListener('click', () => performActionWithDelay(exploreCommunityCenterButton, () => exploreThornyvaleSection('communityCenter'), 6000, "Exploring..."));
+        returnToTrailerButton.addEventListener('click', () => performActionWithDelay(returnToTrailerButton, returnToTrailer, 1000, "Returning..."));
+
+        // New Survey Button for Park
+        surveySurroundingButton.addEventListener('click', () => performActionWithDelay(surveySurroundingButton, surveySurrounding, 5000, "Surveying..."));
+
+        // Community Center Sub-Location Buttons
+        exploreCommunityCenterOfficeButton.addEventListener('click', () => performActionWithDelay(exploreCommunityCenterOfficeButton, () => scavengeLocation('communityCenterOffice'), 4000, "Scavenging..."));
+        exploreCommunityCenterKitchenButton.addEventListener('click', () => performActionWithDelay(exploreCommunityCenterKitchenButton, () => scavengeLocation('communityCenterKitchen'), 4000, "Scavenging..."));
+        exploreCommunityCenterGymButton.addEventListener('click', () => performActionWithDelay(exploreCommunityCenterGymButton, () => scavengeLocation('communityCenterGym'), 4000, "Scavenging..."));
+        exploreCommunityCenterDilapidatedShackButton.addEventListener('click', () => performActionWithDelay(exploreCommunityCenterDilapidatedShackButton, () => scavengeLocation('communityCenterdilapidatedshack'), 4000, "Scavenging..."));
+        returnToThornyvaleHubButton.addEventListener('click', () => performActionWithDelay(returnToThornyvaleHubButton, returnToThornyvaleHub, 1000, "Returning..."));
+
+        // North Section Sub-Location Buttons
+        exploreHoardersHavenButton.addEventListener('click', () => performActionWithDelay(exploreHoardersHavenButton, () => scavengeLocation('northSectionhoardershaven'), 4000, "Scavenging..."));
+        exploreOvergrownOasisButton.addEventListener('click', () => performActionWithDelay(exploreOvergrownOasisButton, () => scavengeLocation('northSectionovergrownoasis'), 4000, "Scavenging..."));
+        exploreBurnedOutShellButton.addEventListener('click', () => performActionWithDelay(exploreBurnedOutShellButton, () => scavengeLocation('northSectionburnedoutshell'), 4000, "Scavenging..."));
+
+
+        // Crafting Buttons
+        craftCampfireButton.addEventListener('click', () => performActionWithDelay(craftCampfireButton, craftCampfire, 5000, "Building..."));
+        cookFoodButton.addEventListener('click', () => performActionWithDelay(cookFoodButton, cookFood, 4000, "Fueling Fire"));
+        boilWaterButton.addEventListener('click', () => performActionWithDelay(boilWaterButton, boilWater, 4000, "Fueling Fire"));
+        craftBandagesButton.addEventListener('click', () => performActionWithDelay(craftBandagesButton, craftBandages, 3000, "Crafting..."));
+
+
+        // --- Initial Game Setup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            gameLog.innerHTML = '';
+            loadGame();
+            mainActionButtonsDiv.style.display = 'grid';
+            parkExplorationButtonsDiv.style.display = 'none';
+        });
+
+    </script>
+</body>
+</html>
