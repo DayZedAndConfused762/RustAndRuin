@@ -211,8 +211,6 @@ Working
 @@CORRECTLY LOCKED WITHOUT MACHETE@@TESTINGFURTHER@@	...When searching the "South Section", display a message that the area is too overgrown to enter.  If the player has the Machete in their inventory, they are able to cut the overgrowth and enter the section.  The Machete is not consumed.
 		...Adjust the flavor text log entries for the "South Section" to mention it's overgrowth and claustrophobic feel.
 
-
-
 ... The "Charred Document" should only give it's flavor text log entry when used, not when finding it.  
 
 -------------------------------------------------------
