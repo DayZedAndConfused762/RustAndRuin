@@ -211,6 +211,8 @@ Change the log entry "Your first priority: secure your home." to "Your first pri
 
 ...Instead of disabling the "Daily Limit Reach" button when running out of searches in Lot 27, the button should still be useable and still consume stamina, but display a log entry message they they have searched everywhere they can think of and to try again tomorrow.
 
+...The "Search Lot 27" should  stay "Search Lot 27" even when exhausted, do not show "(Exhausted)" on the button.
+
 ... The "Charred Document" should only give it's flavor text log entry when used, not when finding it.  
 
 -------------------------------------------------------
