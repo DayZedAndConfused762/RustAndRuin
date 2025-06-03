@@ -130,7 +130,11 @@ Re do the park exploration feature:
 
 	 >Thornyvale
 
-		 >North Section
+The Overturned RV
+Description: "A once-luxurious RV lies on its side, wheels spun uselessly. Its interior is a chaotic mess of overturned furniture and scattered personal effects, hinting at a hasty, desperate escape that ended here."
+Flavor/Theme: Lost dreams, sudden tragedy, the fragility of a comfortable life.
+Potential Unique Loot: Higher chance of luxury consumables (e.g., unopened alcohol, gourmet canned goods, rarely a compact generator), vehicle parts, and potentially a camping axe or first-aid kit.
+Hazards: Moderate zombie chance (potential trapped walkers inside). Small chance of structural collapse if not approached carefully, leading to injury.
 
 
 			>The Makeshift Workshop
@@ -177,6 +181,18 @@ Re do the park exploration feature:
 				Potential Unique Loot: High chance of components, scrap metal, and a moderate chance of finding basic tools (e.g., wrench, screwdriver). Rare chance of discovering a "Blueprint Fragment" (a lore item or a precursor to unlocking advanced crafting recipes).
 				Hazards: Increased injury chance from sharp edges and unstable piles of junk. Low zombie chance.
 
+The Party Trailer
+Description: "The interior of this trailer is a chaotic testament to pre-apocalypse revelry: overturned beer cans, deflated balloons, and glitter cover every surface. The lingering scent of stale alcohol and cheap perfume hangs in the air, a stark contrast to the silence outside."
+Flavor/Theme: Escapism, fleeting joy, the abrupt end of normalcy.
+Potential Unique Loot: High chance of finding empty bottles (for crafting Molotovs or water storage), alcohol (for crafting disinfectants or morale boosts), and small amounts of valuable trinkets (e.g., cheap jewelry that could be traded for a minor resource boost).
+Hazards: Moderate zombie chance (attracted by noise or the lingering scents). Small chance of injury from broken glass underfoot.
+
+The Prepper's Hideout
+Description: "This trailer looks sturdier than the rest, with reinforced windows and a surprisingly robust door. Inside, shelves are built into every available space, though most are now empty or overturned. A faint smell of disinfectant lingers in the air."
+Flavor/Theme: Paranoia, self-sufficiency gone awry, the illusion of safety.
+Potential Unique Loot: 0-1 rotten food, 0-1 rotten water, 0-1 clean water, 10% chance for an "MRE".
+Hazards: Moderate zombie chance (the owner might have turned, or drawn others in). Potential for booby traps near entrances or hidden caches.
+
 =====
 BALANCING
 =====
@@ -189,6 +205,7 @@ Working
 
 
 Let's implement a new searchable location in the South Section area:
+
 
 
 
