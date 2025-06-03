@@ -190,15 +190,7 @@ Working
 
 Let's implement a new searchable location in the South Section area:
 
-		The Burned-Out Shell
 
-        Description: "Little more than a charred husk, this trailer was clearly ravaged by fire. The air still carries the faint, acrid smell of smoke and despair. Exploring here feels dangerous."
-
-        Flavor/Theme: Destruction, past tragedy, lingering danger.
-
-        Potential Unique Loot: 1-3 wood, 0-2 scrap metal, and a 10% chance of finding a "Charred Document" (a item providing a small text snippet about the fire or its former occupants(this item should have a few different possible text snippets it can provide) this item should be shown in the supplies category after being found).
-
-        Events: 15% injury chance (sharp, twisted metal) 2-6 damage. extra 5 stamina used to unstable footing. 5% chance: structural collapse, 5-12 damage.
 
 
 
