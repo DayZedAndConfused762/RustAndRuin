@@ -181,13 +181,14 @@ BALANCING
 
 
 -------------------------------------------------------
-Wroking
+Working
 -------------------------------------------------------
 
 
 
 Change the log entry "Your first priority: secure your home." to "Your first priority: examine your surroundings."
 
+...Make the log area a little bit taller.
 
 ...The message "You've checked everywhere you can think of. Maybe you should rest." should only be displayed when one time, during the fifth daily search of lot 27.
 
