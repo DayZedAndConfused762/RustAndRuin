@@ -187,11 +187,6 @@ Flavor/Theme: Escapism, fleeting joy, the abrupt end of normalcy.
 Potential Unique Loot: High chance of finding empty bottles (for crafting Molotovs or water storage), alcohol (for crafting disinfectants or morale boosts), and small amounts of valuable trinkets (e.g., cheap jewelry that could be traded for a minor resource boost).
 Hazards: Moderate zombie chance (attracted by noise or the lingering scents). Small chance of injury from broken glass underfoot.
 
-The Prepper's Hideout
-Description: "This trailer looks sturdier than the rest, with reinforced windows and a surprisingly robust door. Inside, shelves are built into every available space, though most are now empty or overturned. A faint smell of disinfectant lingers in the air."
-Flavor/Theme: Paranoia, self-sufficiency gone awry, the illusion of safety.
-Potential Unique Loot: 0-1 rotten food, 0-1 rotten water, 0-1 clean water, 10% chance for an "MRE".
-Hazards: Moderate zombie chance (the owner might have turned, or drawn others in). Potential for booby traps near entrances or hidden caches.
 
 =====
 BALANCING
@@ -204,9 +199,17 @@ Working
 -------------------------------------------------------
 
 
-Let's implement a new searchable location in the South Section area:
+...Let's implement a new searchable location in the South Section area:
 
+	The Prepper's Hideout
 
+	Description: "This trailer looks sturdier than the rest, with reinforced windows and a surprisingly robust door. Inside, shelves are built into every available space, though most are now empty or overturned. A faint smell of disinfectant lingers in the air."
+
+	Flavor/Theme: Paranoia, self-sufficiency gone awry, the illusion of safety.
+
+	Loot: 0-1 rotten food, 0-1 rotten water, 0-1 clean water, 10% chance for a new "MRE". the "MRE" is a new "Supplies" item, that when used lowers hunger by 60 and thirst by 20.  5% chance for a new item, "First Aid Kit".  This is a new "Supplies" item that restores 15-35 health when used.
+
+	Events: 15% zombie chance(2-7 damage), 10% trap chance(there should be multiple different flavor text entries for the traps, chosen ramdomly) (3-9 damage)
 
 
 
