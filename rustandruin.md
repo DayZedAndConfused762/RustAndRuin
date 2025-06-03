@@ -200,24 +200,28 @@ Working
 
 Change the log entry "Your first priority: secure your home." to "Your first priority: examine your surroundings."
 
+Remove any instances of the log message "The area seems clear... for now."
+
 ...Let's implement a new searchable location in the South Section area:
 			The Prepper's Hideout
 			Description: "This trailer looks sturdier than the rest, with reinforced windows and a surprisingly robust door. Inside, shelves are built into every available space, though most are now empty or overturned. A faint smell of disinfectant lingers in the air."
 			Flavor/Theme: Paranoia, self-sufficiency gone awry, the illusion of safety.
 			Loot: 0-1 rotten food, 0-1 dirty water @@@**was sent as rotten water, may need a fix**@@@, 0-1 clean water, 10% chance for a new "MRE". the "MRE" is a new "Supplies" item, that when used lowers hunger by 60 and thirst by 20.  5% chance for a new item, "First Aid Kit".  This is a new "Supplies" item that restores 15-35 health when used.
 			Events: 15% zombie chance(2-7 damage), 10% trap chance(there should be multiple different flavor text entries for the traps, chosen ramdomly) (3-9 damage)
-	...When searching the "South Section", display a message that the area is too overgrown to enter.  If the player has the Machete in their inventory, they are able to cut the overgrowth and enter the section.  The Machete is not consumed.
+@@CORRECTLY REQUIRES MACHETE@@TESTINGFURTHER@@	...When searching the "South Section", display a message that the area is too overgrown to enter.  If the player has the Machete in their inventory, they are able to cut the overgrowth and enter the section.  The Machete is not consumed.
 		...Adjust the flavor text log entries for the "South Section" to mention it's overgrowth and claustrophobic feel.
 
-...Instead of disabling the "Daily Limit Reach" button when running out of searches in Lot 27, the button should still be useable and still consume stamina, but display a log entry message they they have searched everywhere they can think of and to try again tomorrow.
 
-...The "Search Lot 27" should  stay "Search Lot 27" even when exhausted, do not show "(Exhausted)" on the button.
 
 ... The "Charred Document" should only give it's flavor text log entry when used, not when finding it.  
 
 -------------------------------------------------------
 Completed and QA'd
 -------------------------------------------------------
+
+...Instead of disabling the "Daily Limit Reach" button when running out of searches in Lot 27, the button should still be useable and still consume stamina, but display a log entry message they they have searched everywhere they can think of and to try again tomorrow.
+
+...The "Search Lot 27" should  stay "Search Lot 27" even when exhausted, do not show "(Exhausted)" on the button.
 
 ...Make the log area a little bit taller.
 
