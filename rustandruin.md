@@ -204,6 +204,8 @@ Let's implement a new searchable location in the South Section area:
 
 Change the log entry "Your first priority: secure your home." to "Your first priority: examine your surroundings."
 
+... The "Charred Document" should only give it's flavor text log entry when used, not when finding it.  
+
 ...Make the log area a little bit taller.
 
 ...The message "You've checked everywhere you can think of. Maybe you should rest." should only be displayed when one time, during the fifth daily search of lot 27.
