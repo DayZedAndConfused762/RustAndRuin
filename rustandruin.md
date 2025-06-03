@@ -198,9 +198,9 @@ BALANCING
 Working
 -------------------------------------------------------
 
-Change the log entry "Your first priority: secure your home." to "Your first priority: examine your surroundings."
+...Change the log entry "Your first priority: secure your home." to "Your first priority: examine your surroundings."
 
-Remove any instances of the log message "The area seems clear... for now."
+...Remove any instances of the log message "The area seems clear... for now."
 
 ...Let's implement a new searchable location in the South Section area:
 			The Prepper's Hideout
