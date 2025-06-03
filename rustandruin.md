@@ -208,7 +208,7 @@ Remove any instances of the log message "The area seems clear... for now."
 			Flavor/Theme: Paranoia, self-sufficiency gone awry, the illusion of safety.
 			Loot: 0-1 rotten food, 0-1 dirty water @@@**was sent as rotten water, may need a fix**@@@, 0-1 clean water, 10% chance for a new "MRE". the "MRE" is a new "Supplies" item, that when used lowers hunger by 60 and thirst by 20.  5% chance for a new item, "First Aid Kit".  This is a new "Supplies" item that restores 15-35 health when used.
 			Events: 15% zombie chance(2-7 damage), 10% trap chance(there should be multiple different flavor text entries for the traps, chosen ramdomly) (3-9 damage)
-@@CORRECTLY REQUIRES MACHETE@@TESTINGFURTHER@@	...When searching the "South Section", display a message that the area is too overgrown to enter.  If the player has the Machete in their inventory, they are able to cut the overgrowth and enter the section.  The Machete is not consumed.
+@@CORRECTLY LOCKED WITHOUT MACHETE@@TESTINGFURTHER@@	...When searching the "South Section", display a message that the area is too overgrown to enter.  If the player has the Machete in their inventory, they are able to cut the overgrowth and enter the section.  The Machete is not consumed.
 		...Adjust the flavor text log entries for the "South Section" to mention it's overgrowth and claustrophobic feel.
 
 
