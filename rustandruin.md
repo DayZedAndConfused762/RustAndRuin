@@ -198,8 +198,6 @@ BALANCING
 Working
 -------------------------------------------------------
 
-Instead of disabling the "Daily Limit Reach" button when running out of searches in Lot 27, the button should still be useable and still consume stamina, but display a log entry message they they have searched everywhere they can think of and to try again tomorrow.
-
 Change the log entry "Your first priority: secure your home." to "Your first priority: examine your surroundings."
 
 ...Let's implement a new searchable location in the South Section area:
@@ -211,17 +209,16 @@ Change the log entry "Your first priority: secure your home." to "Your first pri
 	...When searching the "South Section", display a message that the area is too overgrown to enter.  If the player has the Machete in their inventory, they are able to cut the overgrowth and enter the section.  The Machete is not consumed.
 		...Adjust the flavor text log entries for the "South Section" to mention it's overgrowth and claustrophobic feel.
 
-
+...Instead of disabling the "Daily Limit Reach" button when running out of searches in Lot 27, the button should still be useable and still consume stamina, but display a log entry message they they have searched everywhere they can think of and to try again tomorrow.
 
 ... The "Charred Document" should only give it's flavor text log entry when used, not when finding it.  
-
-...Make the log area a little bit taller.
-
-...The message "You've checked everywhere you can think of. Maybe you should rest." should only be displayed when one time, during the fifth daily search of lot 27.
 
 -------------------------------------------------------
 Completed and QA'd
 -------------------------------------------------------
+
+...Make the log area a little bit taller.
+
 ...Let's make a new global action that affects many skills.  When using an action that uses stamina, and your hunger or thirst are above 85%, do 1-5 damage to the player, and include a few different log messages that can display due to this.
 
 ***Make the only to restore health to be by using a bandage.
@@ -307,7 +304,6 @@ Completed and QA'd
 
 	...Change "Cooking..." text displayed during the cooking food function to "Fueling Fire".
 
-
 	***We are going be be changing what happens when the player explores the park. When the player explores the park and travels to "Thornyvale", display one button, "Survey Surrounding". Once this button is pressed, it should be hidden, and reveal three more buttons, "North Section", "Community Center", and "South Section". For now these buttons do not do anything. 
 		...Remove function from the "North Section" button to reveal North Trailers 1, 2, and 3, and also remove those trailers.
 
@@ -327,8 +323,6 @@ Completed and QA'd
 	...Change the "Repair Trailer" action to be "Fortify Trailer" instead, and update it's log entry appropriately.
 	
 	...Keep the last 100 log entries in the log area.
-	
-
 
 	...Change the "Actions" header text to display "Trailer 27".
 
