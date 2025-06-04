@@ -195,18 +195,18 @@ BALANCING
 Working
 -------------------------------------------------------
 
+Remove log entries:
+	"You begin exploring the more..."
+
 Using the "North Section", "South Section" or "Community Center" buttons should only cost 5 Stamina.
 
-Using "Dirty Water", "Rotten Food", "Clean Water" or "Cooked Food" actions should not incur the health penalty due to high "Thirst" or "Hunger"
+Using "Supplies" items should not incur the health penalty due to high "Thirst" or "Hunger"
 
 ...Implement a new item: "Rusty Key".  The "Rusty Key" should be added to "The Office" loot table, with a 20% chance. The player can only ever find this once, and it will be displayed in the "Gear" section of the inventory.
 
+...Update the "Dilapidated Shack" function, if the player does not have the "Rusty Key" they will be unable to search due to the door being locked tight.  If they have the "Rusty Key", they will now be able to search here.
 
 
-Update the "Dil Trailer" function, if the player does not have the "Rusty Key" fuction
-
-Remove log entries:
-	"You begin exploring the more..."
 
 ...Let's implement a new searchable location in the South Section area:
 			The Prepper's Hideout
