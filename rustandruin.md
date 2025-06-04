@@ -201,7 +201,7 @@ Working
 
 
 
-...Change the log entry "Your first priority: secure your home." to "Your first priority: examine your surroundings."
+
 
 ...Let's implement a new searchable location in the South Section area:
 			The Prepper's Hideout
@@ -218,10 +218,12 @@ Working
 Completed and QA'd
 -------------------------------------------------------
 
+...Change the log entry "Your first priority: secure your home." to "Your first priority: examine your surroundings."
+
 ***Update the "Cook Food" action to cost 2 "Rotten Food" and 1 "Wood".  This action should show two progress bars, one after the other, each taking 3 seconds.  First progress bar: "Fueling Fire...", second bar: "Cooking Food...".
 ***Update the "Boil Water" action to cost 2 "Dirty Water" and 1 "Wood".  This action should show two progress bars, one after the other, each taking 3 seconds.  First progress bar: "Fueling Fire...", second bar: "Boiling Water...".
 	...The "Cook Food" function and "Boil Water" function should not reduce thirst or hunger.  "Cook Food will consume 2 "Rotten Food", and 1 "Wood", and will give 1 "Cooked Food". "Boil Water" will consume 2 "Dirty Water" and 1 "Wood", and will give 1 "Clean Water".
-	
+
 ...Remove any instances of the log message "The area seems clear... for now."
 
 ...Do not pluralize item names in log entries.
