@@ -183,11 +183,7 @@ The Party Trailer
 	Potential Unique Loot: High chance of finding empty bottles (for crafting Molotovs or water storage), alcohol (for crafting disinfectants or morale boosts), and small amounts of valuable trinkets (e.g., cheap jewelry that could be traded for a minor resource boost).
 	Hazards: Moderate zombie chance (attracted by noise or the lingering scents). Small chance of injury from broken glass underfoot.
 
-The Makeshift Workshop
-	Description: "Scattered tools and half-finished projects lie abandoned in this trailer. It looks like someone was tinkering, trying to build or repair something before the apocalypse took hold."
-	Flavor/Theme: Human ingenuity, interrupted progress, the struggle for survival.
-	Potential Unique Loot: High chance of components, scrap metal, and a moderate chance of finding a basic tool (e.g., a wrench or screwdriver that 	could be used for advanced crafting later).
-	Hazards: Low zombie chance. Small chance of an injury from stray tools or sharp edges.
+
 
 =====
 BALANCING
@@ -198,6 +194,9 @@ BALANCING
 -------------------------------------------------------
 Working
 -------------------------------------------------------
+
+
+
 
 Remove log entries:
 	"You begin exploring the more..."
@@ -211,6 +210,13 @@ Remove log entries:
 			*** Fix this error: [10:12:47 AM] [CONSOLE_ERROR] Attempted to gain unknown resource type: mre
 
 ...Update the costs for using the "Fortify Trailer" action.  Stamina Cost: 15.  Materials Cost if security is below 25: 3 Scrap Metal, 1 Rags.  Cost when using from 25-49 "Trailer Security" is 4 Scrap Metal, 1 Rags, 1 Wood.  Cost when using from 50-74 "Trailer Security" is 5 Scrap Metal, 2 Rags, 2 Wood, 1 Component.  Cost when using abouve 75 "Trailer Security" is 10 Scrap Metal, 5 Rags, 5 Wood, 3 Components.
+
+...Let's implement a new searchable location in the South Section area:
+	The Makeshift Workshop
+		Description: "Scattered tools and half-finished projects lie abandoned in this trailer. It looks like someone was tinkering, trying to build or repair something before the apocalypse took hold."
+		Flavor/Theme: Human ingenuity, interrupted progress, the struggle for survival.
+		Potential Unique Loot: High chance of components, scrap metal, 5% chance to find a new item: "Bike Frame".  This item can only be found once, and will be shown in the "Gear" category.
+		Hazards: 10% zombie chance, 1-5 damage. 5% chance of an injury from rusty tools or sharp edges, 3-9 Damage.
 
 -------------------------------------------------------
 Completed and QA'd
