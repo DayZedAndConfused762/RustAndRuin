@@ -195,18 +195,19 @@ BALANCING
 Working
 -------------------------------------------------------
 
+The Message "You use the bolt cutter to cut through the heavy chain on the gate. The North Section is now accessible." should only display the first time the player enters the north section using the bolt cutters.
+
 Remove log entries:
 	"You begin exploring the more..."
+	"You begin exploring the a..."
+
+...Update the drop chance of the "Machete" to 20%
 
 ...Using the "North Section", "South Section" or "Community Center" buttons should only cost 5 Stamina.
-
-...Using "Supplies" items should not incur the health penalty due to high "Thirst" or "Hunger"
 
 ...Implement a new item: "Rusty Key".  The "Rusty Key" should be added to "The Office" loot table, with a 20% chance. The player can only ever find this once, and it will be displayed in the "Gear" section of the inventory.
 
 ...Update the "Dilapidated Shack" function, if the player does not have the "Rusty Key" they will be unable to search due to the door being locked tight.  If they have the "Rusty Key", they will now be able to search here.
-
-
 
 ...Let's implement a new searchable location in the South Section area:
 			The Prepper's Hideout
@@ -228,6 +229,8 @@ Remove log entries:
 -------------------------------------------------------
 Completed and QA'd
 -------------------------------------------------------
+
+	...Using "Supplies" items should not incur the health penalty due to high "Thirst" or "Hunger"
 
 	...When searching the "South Section", display a message that the area is too overgrown to enter.  If the player has the Machete in their inventory, they are able to cut the overgrowth and enter the section.  The Machete is not consumed.
 		...Adjust the flavor text log entries for the "South Section" to mention it's overgrowth and claustrophobic feel.
