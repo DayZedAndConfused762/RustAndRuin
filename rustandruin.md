@@ -198,9 +198,9 @@ Working
 Remove log entries:
 	"You begin exploring the more..."
 
-Using the "North Section", "South Section" or "Community Center" buttons should only cost 5 Stamina.
+...Using the "North Section", "South Section" or "Community Center" buttons should only cost 5 Stamina.
 
-Using "Supplies" items should not incur the health penalty due to high "Thirst" or "Hunger"
+...Using "Supplies" items should not incur the health penalty due to high "Thirst" or "Hunger"
 
 ...Implement a new item: "Rusty Key".  The "Rusty Key" should be added to "The Office" loot table, with a 20% chance. The player can only ever find this once, and it will be displayed in the "Gear" section of the inventory.
 
