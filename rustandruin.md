@@ -199,15 +199,11 @@ BALANCING
 Working
 -------------------------------------------------------
 
-...Do not pluralize item names in log entries.
-
-...Update the "Cook Food" action to cost 2 "Rotten Food" and 1 "Wood".  This action should show two progress bars, one after the other, each taking 3 seconds.  First progress bar: "Fueling Fire...", second bar: "Cooking Food...".
-
-...Update the "Boil Water" action to cost 2 "Dirty Water" and 1 "Wood".  This action should show two progress bars, one after the other, each taking 3 seconds.  First progress bar: "Fueling Fire...", second bar: "Boiling Water...".
+***Update the "Cook Food" action to cost 2 "Rotten Food" and 1 "Wood".  This action should show two progress bars, one after the other, each taking 3 seconds.  First progress bar: "Fueling Fire...", second bar: "Cooking Food...".
+***Update the "Boil Water" action to cost 2 "Dirty Water" and 1 "Wood".  This action should show two progress bars, one after the other, each taking 3 seconds.  First progress bar: "Fueling Fire...", second bar: "Boiling Water...".
+	...The "Cook Food" function and "Boil Water" function should not reduce thirst or hunger.  "Cook Food will consume 2 "Rotten Food", and 1 "Wood", and will give 1 "Cooked Food". "Boil Water" will consume 2 "Dirty Water" and 1 "Wood", and will give 1 "Clean Water".
 
 ...Change the log entry "Your first priority: secure your home." to "Your first priority: examine your surroundings."
-
-...Remove any instances of the log message "The area seems clear... for now."
 
 ...Let's implement a new searchable location in the South Section area:
 			The Prepper's Hideout
@@ -223,6 +219,10 @@ Working
 -------------------------------------------------------
 Completed and QA'd
 -------------------------------------------------------
+
+...Remove any instances of the log message "The area seems clear... for now."
+
+...Do not pluralize item names in log entries.
 
 ...Instead of disabling the "Daily Limit Reach" button when running out of searches in Lot 27, the button should still be useable and still consume stamina, but display a log entry message they they have searched everywhere they can think of and to try again tomorrow.
 
