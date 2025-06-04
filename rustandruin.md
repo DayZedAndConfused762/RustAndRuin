@@ -197,17 +197,13 @@ Working
 
 The Message "You use the bolt cutter to cut through the heavy chain on the gate. The North Section is now accessible." should only display the first time the player enters the north section using the bolt cutters.
 
-Remove log entries:
-	"You begin exploring the more..."
-	"You begin exploring the a..."
+...Remove log entries:	"You begin exploring the more..."	"You begin exploring the a..."
 
 ...Update the drop chance of the "Machete" to 20%
 
 ...Using the "North Section", "South Section" or "Community Center" buttons should only cost 5 Stamina.
 
-...Implement a new item: "Rusty Key".  The "Rusty Key" should be added to "The Office" loot table, with a 20% chance. The player can only ever find this once, and it will be displayed in the "Gear" section of the inventory.
 
-...Update the "Dilapidated Shack" function, if the player does not have the "Rusty Key" they will be unable to search due to the door being locked tight.  If they have the "Rusty Key", they will now be able to search here.
 
 ...Let's implement a new searchable location in the South Section area:
 			The Prepper's Hideout
@@ -229,6 +225,11 @@ Remove log entries:
 -------------------------------------------------------
 Completed and QA'd
 -------------------------------------------------------
+
+
+	...Implement a new item: "Rusty Key".  The "Rusty Key" should be added to "The Office" loot table, with a 20% chance. The player can only ever find this once, and it will be displayed in the "Gear" section of the inventory.
+
+	...Update the "Dilapidated Shack" function, if the player does not have the "Rusty Key" they will be unable to search due to the door being locked tight.  If they have the "Rusty Key", they will now be able to search here.
 
 	...Using "Supplies" items should not incur the health penalty due to high "Thirst" or "Hunger"
 
