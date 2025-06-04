@@ -137,11 +137,7 @@ Potential Unique Loot: Higher chance of luxury consumables (e.g., unopened alcoh
 Hazards: Moderate zombie chance (potential trapped walkers inside). Small chance of structural collapse if not approached carefully, leading to injury.
 
 
-			>The Makeshift Workshop
-				Description: "Scattered tools and half-finished projects lie abandoned in this trailer. It looks like someone was tinkering, trying to build or repair something before the apocalypse took hold."
-				Flavor/Theme: Human ingenuity, interrupted progress, the struggle for survival.
-				Potential Unique Loot: High chance of components, scrap metal, and a moderate chance of finding a basic tool (e.g., a wrench or screwdriver that 	could be used for advanced crafting later).
-				Hazards: Low zombie chance. Small chance of an injury from stray tools or sharp edges.
+
 
 			 >The Survivor's Trap
 				Description: "Barricades made of scrap metal and furniture block the windows and door of this trailer. It was clearly fortified, but whatever happened here ended badly. A faint, unsettling silence hangs over it, heavier than the general stillness of the park."
@@ -182,11 +178,16 @@ Hazards: Moderate zombie chance (potential trapped walkers inside). Small chance
 				Hazards: Increased injury chance from sharp edges and unstable piles of junk. Low zombie chance.
 
 The Party Trailer
-Description: "The interior of this trailer is a chaotic testament to pre-apocalypse revelry: overturned beer cans, deflated balloons, and glitter cover every surface. The lingering scent of stale alcohol and cheap perfume hangs in the air, a stark contrast to the silence outside."
-Flavor/Theme: Escapism, fleeting joy, the abrupt end of normalcy.
-Potential Unique Loot: High chance of finding empty bottles (for crafting Molotovs or water storage), alcohol (for crafting disinfectants or morale boosts), and small amounts of valuable trinkets (e.g., cheap jewelry that could be traded for a minor resource boost).
-Hazards: Moderate zombie chance (attracted by noise or the lingering scents). Small chance of injury from broken glass underfoot.
+	Description: "The interior of this trailer is a chaotic testament to pre-apocalypse revelry: overturned beer cans, deflated balloons, and glitter cover every surface. The lingering scent of stale alcohol and cheap perfume hangs in the air, a stark contrast to the silence outside."
+	Flavor/Theme: Escapism, fleeting joy, the abrupt end of normalcy.
+	Potential Unique Loot: High chance of finding empty bottles (for crafting Molotovs or water storage), alcohol (for crafting disinfectants or morale boosts), and small amounts of valuable trinkets (e.g., cheap jewelry that could be traded for a minor resource boost).
+	Hazards: Moderate zombie chance (attracted by noise or the lingering scents). Small chance of injury from broken glass underfoot.
 
+The Makeshift Workshop
+	Description: "Scattered tools and half-finished projects lie abandoned in this trailer. It looks like someone was tinkering, trying to build or repair something before the apocalypse took hold."
+	Flavor/Theme: Human ingenuity, interrupted progress, the struggle for survival.
+	Potential Unique Loot: High chance of components, scrap metal, and a moderate chance of finding a basic tool (e.g., a wrench or screwdriver that 	could be used for advanced crafting later).
+	Hazards: Low zombie chance. Small chance of an injury from stray tools or sharp edges.
 
 =====
 BALANCING
