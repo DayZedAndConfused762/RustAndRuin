@@ -199,9 +199,8 @@ BALANCING
 Working
 -------------------------------------------------------
 
-
-
-
+Remove log entries:
+	"You begin exploring the more..."
 
 ...Let's implement a new searchable location in the South Section area:
 			The Prepper's Hideout
@@ -209,20 +208,24 @@ Working
 			Flavor/Theme: Paranoia, self-sufficiency gone awry, the illusion of safety.
 			Loot: 0-1 rotten food, 0-1 dirty water @@@**was sent as rotten water, may need a fix**@@@, 0-1 clean water, 10% chance for a new "MRE". the "MRE" is a new "Supplies" item, that when used lowers hunger by 60 and thirst by 20.  5% chance for a new item, "First Aid Kit".  This is a new "Supplies" item that restores 15-35 health when used.
 			Events: 15% zombie chance(2-7 damage), 10% trap chance(there should be multiple different flavor text entries for the traps, chosen ramdomly) (3-9 damage)
-@@CORRECTLY LOCKED WITHOUT MACHETE@@TESTINGFURTHER@@	...When searching the "South Section", display a message that the area is too overgrown to enter.  If the player has the Machete in their inventory, they are able to cut the overgrowth and enter the section.  The Machete is not consumed.
-		...Adjust the flavor text log entries for the "South Section" to mention it's overgrowth and claustrophobic feel.
+			*** Fix this error: [10:12:47 AM] [CONSOLE_ERROR] Attempted to gain unknown resource type: mre
 
-... The "Charred Document" should only give it's flavor text log entry when used, not when finding it.  
+...Update the costs for using the "Fortify Trailer" action.  Stamina Cost: 15.  Materials Cost if security is below 25: 3 Scrap Metal, 1 Rags.  Cost when using from 25-49 "Trailer Security" is 4 Scrap Metal, 1 Rags, 1 Wood.  Cost when using from 50-74 "Trailer Security" is 5 Scrap Metal, 2 Rags, 2 Wood, 1 Component.  Cost when using abouve 75 "Trailer Security" is 10 Scrap Metal, 5 Rags, 5 Wood, 3 Components.
 
 -------------------------------------------------------
 Completed and QA'd
 -------------------------------------------------------
 
-...Change the log entry "Your first priority: secure your home." to "Your first priority: examine your surroundings."
+	...When searching the "South Section", display a message that the area is too overgrown to enter.  If the player has the Machete in their inventory, they are able to cut the overgrowth and enter the section.  The Machete is not consumed.
+		...Adjust the flavor text log entries for the "South Section" to mention it's overgrowth and claustrophobic feel.
 
-***Update the "Cook Food" action to cost 2 "Rotten Food" and 1 "Wood".  This action should show two progress bars, one after the other, each taking 3 seconds.  First progress bar: "Fueling Fire...", second bar: "Cooking Food...".
-***Update the "Boil Water" action to cost 2 "Dirty Water" and 1 "Wood".  This action should show two progress bars, one after the other, each taking 3 seconds.  First progress bar: "Fueling Fire...", second bar: "Boiling Water...".
-	...The "Cook Food" function and "Boil Water" function should not reduce thirst or hunger.  "Cook Food will consume 2 "Rotten Food", and 1 "Wood", and will give 1 "Cooked Food". "Boil Water" will consume 2 "Dirty Water" and 1 "Wood", and will give 1 "Clean Water".
+	... The "Charred Document" should only give it's flavor text log entry when used, not when finding it.  
+
+	...Change the log entry "Your first priority: secure your home." to "Your first priority: examine your surroundings."
+
+	***Update the "Cook Food" action to cost 2 "Rotten Food" and 1 "Wood".  This action should show two progress bars, one after the other, each taking 3 seconds.  First progress bar: "Fueling Fire...", second bar: "Cooking Food...".
+	***Update the "Boil Water" action to cost 2 "Dirty Water" and 1 "Wood".  This action should show two progress bars, one after the other, each taking 3 seconds.  First progress bar: "Fueling Fire...", second bar: "Boiling Water...".
+		...The "Cook Food" function and "Boil Water" function should not reduce thirst or hunger.  "Cook Food will consume 2 "Rotten Food", and 1 "Wood", and will give 1 "Cooked Food". "Boil Water" will consume 2 "Dirty Water" and 1 "Wood", and will give 1 "Clean Water".
 
 ...Remove any instances of the log message "The area seems clear... for now."
 
