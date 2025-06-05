@@ -195,9 +195,9 @@ BALANCING
 Working
 -------------------------------------------------------
 
-The Message "You use the bolt cutter to cut through the heavy chain on the gate. The North Section is now accessible." should only display the first time the player enters the north section using the bolt cutters.
+...The Message "You use the bolt cutter to cut through the heavy chain on the gate. The North Section is now accessible." should only display the first time the player enters the north section using the bolt cutters.
 
-Add a log message about unlocking the shack when the player searches the "Dilapidated Shack" for the first time after obtaining the "Rusty Key"
+...Add a log message about unlocking the shack when the player searches the "Dilapidated Shack" for the first time after obtaining the "Rusty Key"
 
 ...Change the Stamina Cost for any actions requiring stamina to be 1
 				@@@ FOR TESTING!!!  DONT'T FORGET TO REVERT!!! @@@ 
