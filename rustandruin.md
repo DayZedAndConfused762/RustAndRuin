@@ -197,23 +197,9 @@ Working
 
 
 
-...All buttons that use stamina now cost five stamina @@@(for testing purposes, will update later)@@@
-	...Ensure that any actions that currently cost stamina will only cost 5 stamina.
 
-...The "Look Around" button should not use stamina. Add more possible text log entries when looking around. Some describing the inside of the run down trailer, others describing the outsite/yard.
 
-...The Message "You use the bolt cutter to cut through the heavy chain on the gate. The North Section is now accessible." should only display the first time the player enters the north section using the bolt cutters.
 
-...Add a log message about unlocking the shack when the player searches the "Dilapidated Shack" for the first time after obtaining the "Rusty Key"
-
-...Change the Stamina Cost for any actions requiring stamina to be 1
-				@@@ FOR TESTING!!!  DONT'T FORGET TO REVERT!!! @@@ 
-
-...Remove log entries:	"You begin exploring the more..."	"You begin exploring the a..."
-
-...Update the drop chance of the "Machete" to 20%
-
-...Using the "North Section", "South Section" or "Community Center" buttons should only cost 5 Stamina.
 
 
 
@@ -237,6 +223,22 @@ Working
 -------------------------------------------------------
 Completed and QA'd
 -------------------------------------------------------
+
+
+	...The Message "You use the bolt cutter to cut through the heavy chain on the gate. The North Section is now accessible." should only display the first time the player enters the north section using the bolt cutters.
+
+	...Add a log message about unlocking the shack when the player searches the "Dilapidated Shack" for the first time after obtaining the "Rusty Key"
+
+	...Remove log entries:	"You begin exploring the more..."	"You begin exploring the a..."
+
+	...Update the drop chance of the "Machete" to 20%
+
+	...Using the "North Section", "South Section" or "Community Center" buttons should only cost 5 Stamina.
+
+	...All buttons that use stamina now cost five stamina @@@(for testing purposes, will update later)@@@
+		...Ensure that any actions that currently cost stamina will only cost 5 stamina.
+
+	...The "Look Around" button should not use stamina. Add more possible text log entries when looking around. Some describing the inside of the run down trailer, others describing the outsite/yard.
 
 	... The "Fortify Trailer" function should pass time by one hour.
 
