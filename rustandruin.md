@@ -199,31 +199,24 @@ Working
 
 
 
-
-
-
-
-...Let's implement a new searchable location in the South Section area:
-			The Prepper's Hideout
-			Description: "This trailer looks sturdier than the rest, with reinforced windows and a surprisingly robust door. Inside, shelves are built into every available space, though most are now empty or overturned. A faint smell of disinfectant lingers in the air."
-			Flavor/Theme: Paranoia, self-sufficiency gone awry, the illusion of safety.
-			Loot: 0-1 rotten food, 0-1 dirty water @@@**was sent as rotten water, may need a fix**@@@, 0-1 clean water, 10% chance for a new "MRE". the "MRE" is a new "Supplies" item, that when used lowers hunger by 60 and thirst by 20.  5% chance for a new item, "First Aid Kit".  This is a new "Supplies" item that restores 15-35 health when used.
-			Events: 15% zombie chance(2-7 damage), 10% trap chance(there should be multiple different flavor text entries for the traps, chosen ramdomly) (3-9 damage)
-			*** Fix this error: [10:12:47 AM] [CONSOLE_ERROR] Attempted to gain unknown resource type: mre
-
-
-
-...Let's implement a new searchable location in the South Section area:
-	The Makeshift Workshop
-		Description: "Scattered tools and half-finished projects lie abandoned in this trailer. It looks like someone was tinkering, trying to build or repair something before the apocalypse took hold."
-		Flavor/Theme: Human ingenuity, interrupted progress, the struggle for survival.
-		Potential Unique Loot: High chance of components, scrap metal, 5% chance to find a new item: "Bike Frame".  This item can only be found once, and will be shown in the "Gear" category.
-		Hazards: 10% zombie chance, 1-5 damage. 5% chance of an injury from rusty tools or sharp edges, 3-9 Damage.
-
 -------------------------------------------------------
 Completed and QA'd
 -------------------------------------------------------
 
+	...Let's implement a new searchable location in the South Section area:
+				The Prepper's Hideout
+				Description: "This trailer looks sturdier than the rest, with reinforced windows and a surprisingly robust door. Inside, shelves are built into every available space, though most are now empty or overturned. A faint smell of disinfectant lingers in the air."
+				Flavor/Theme: Paranoia, self-sufficiency gone awry, the illusion of safety.
+				Loot: 0-1 rotten food, 0-1 dirty water @@@**was sent as rotten water, may need a fix**@@@, 0-1 clean water, 10% chance for a new "MRE". the "MRE" is a new "Supplies" item, that when used lowers hunger by 60 and thirst by 20.  5% chance for a new item, "First Aid Kit".  This is a new "Supplies" item that restores 15-35 health when used.
+				Events: 15% zombie chance(2-7 damage), 10% trap chance(there should be multiple different flavor text entries for the traps, chosen ramdomly) (3-9 damage)
+				*** Fix this error: [10:12:47 AM] [CONSOLE_ERROR] Attempted to gain unknown resource type: mre
+
+	...Let's implement a new searchable location in the South Section area:
+		The Makeshift Workshop
+			Description: "Scattered tools and half-finished projects lie abandoned in this trailer. It looks like someone was tinkering, trying to build or repair something before the apocalypse took hold."
+			Flavor/Theme: Human ingenuity, interrupted progress, the struggle for survival.
+			Potential Unique Loot: High chance of components, scrap metal, 5% chance to find a new item: "Bike Frame".  This item can only be found once, and will be shown in the "Gear" category.
+			Hazards: 10% zombie chance, 1-5 damage. 5% chance of an injury from rusty tools or sharp edges, 3-9 Damage.
 
 	...The Message "You use the bolt cutter to cut through the heavy chain on the gate. The North Section is now accessible." should only display the first time the player enters the north section using the bolt cutters.
 
