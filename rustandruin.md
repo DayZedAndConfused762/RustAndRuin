@@ -195,9 +195,7 @@ BALANCING
 Working
 -------------------------------------------------------
 
-... The "Fortify Trailer" function should pass time by one hour.
 
-...Remove the log entries: "You've found your first supply item! The 'Supplies' section is now visible in your inventory." and "You've found your first material! The 'Materials' section is now visible in your inventory."
 
 ...All buttons that use stamina now cost five stamina @@@(for testing purposes, will update later)@@@
 	...Ensure that any actions that currently cost stamina will only cost 5 stamina.
@@ -239,6 +237,10 @@ Working
 -------------------------------------------------------
 Completed and QA'd
 -------------------------------------------------------
+
+	... The "Fortify Trailer" function should pass time by one hour.
+
+	...Remove the log entries: "You've found your first supply item! The 'Supplies' section is now visible in your inventory." and "You've found your first material! The 'Materials' section is now visible in your inventory."
 
 	...Update the costs for using the "Fortify Trailer" action.  Stamina Cost: 15.  Materials Cost if security is below 25: 3 Scrap Metal, 1 Rags.  Cost when using from 25-49 "Trailer Security" is 4 Scrap Metal, 1 Rags, 1 Wood.  Cost when using from 50-74 "Trailer Security" is 5 Scrap Metal, 2 Rags, 2 Wood, 1 Component.  Cost when using abouve 75 "Trailer Security" is 10 Scrap Metal, 5 Rags, 5 Wood, 3 Components.
 
