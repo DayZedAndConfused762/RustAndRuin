@@ -195,6 +195,8 @@ BALANCING
 Working
 -------------------------------------------------------
 
+... The "Fortify Trailer" function should pass time by one hour.
+
 ...Remove the log entries: "You've found your first supply item! The 'Supplies' section is now visible in your inventory." and "You've found your first material! The 'Materials' section is now visible in your inventory."
 
 ...All buttons that use stamina now cost five stamina @@@(for testing purposes, will update later)@@@
