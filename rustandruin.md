@@ -197,9 +197,8 @@ Working
 
 ...Remove the log entries: "You've found your first supply item! The 'Supplies' section is now visible in your inventory." and "You've found your first material! The 'Materials' section is now visible in your inventory."
 
-	Ensure that any actions that currently cost stamina will only cost 5 stamina.
-
 ...All buttons that use stamina now cost five stamina @@@(for testing purposes, will update later)@@@
+	...Ensure that any actions that currently cost stamina will only cost 5 stamina.
 
 ...The "Look Around" button should not use stamina. Add more possible text log entries when looking around. Some describing the inside of the run down trailer, others describing the outsite/yard.
 
@@ -226,7 +225,7 @@ Working
 			Events: 15% zombie chance(2-7 damage), 10% trap chance(there should be multiple different flavor text entries for the traps, chosen ramdomly) (3-9 damage)
 			*** Fix this error: [10:12:47 AM] [CONSOLE_ERROR] Attempted to gain unknown resource type: mre
 
-...Update the costs for using the "Fortify Trailer" action.  Stamina Cost: 15.  Materials Cost if security is below 25: 3 Scrap Metal, 1 Rags.  Cost when using from 25-49 "Trailer Security" is 4 Scrap Metal, 1 Rags, 1 Wood.  Cost when using from 50-74 "Trailer Security" is 5 Scrap Metal, 2 Rags, 2 Wood, 1 Component.  Cost when using abouve 75 "Trailer Security" is 10 Scrap Metal, 5 Rags, 5 Wood, 3 Components.
+
 
 ...Let's implement a new searchable location in the South Section area:
 	The Makeshift Workshop
@@ -239,6 +238,7 @@ Working
 Completed and QA'd
 -------------------------------------------------------
 
+	...Update the costs for using the "Fortify Trailer" action.  Stamina Cost: 15.  Materials Cost if security is below 25: 3 Scrap Metal, 1 Rags.  Cost when using from 25-49 "Trailer Security" is 4 Scrap Metal, 1 Rags, 1 Wood.  Cost when using from 50-74 "Trailer Security" is 5 Scrap Metal, 2 Rags, 2 Wood, 1 Component.  Cost when using abouve 75 "Trailer Security" is 10 Scrap Metal, 5 Rags, 5 Wood, 3 Components.
 
 	...Implement a new item: "Rusty Key".  The "Rusty Key" should be added to "The Office" loot table, with a 20% chance. The player can only ever find this once, and it will be displayed in the "Gear" section of the inventory.
 
