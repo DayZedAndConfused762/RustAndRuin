@@ -195,6 +195,10 @@ BALANCING
 Working
 -------------------------------------------------------
 
+...All buttons that use stamina now cost five stamina @@@(for testing purposes, will update later)@@@
+
+...The "Look Around" button should not use stamina. Add more possible text log entries when looking around. Some describing the inside of the run down trailer, others describing the outsite/yard.
+
 ...The Message "You use the bolt cutter to cut through the heavy chain on the gate. The North Section is now accessible." should only display the first time the player enters the north section using the bolt cutters.
 
 ...Add a log message about unlocking the shack when the player searches the "Dilapidated Shack" for the first time after obtaining the "Rusty Key"
