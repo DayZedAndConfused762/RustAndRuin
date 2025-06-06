@@ -195,6 +195,10 @@ BALANCING
 Working
 -------------------------------------------------------
 
+...Remove the log entries: "You've found your first supply item! The 'Supplies' section is now visible in your inventory." and "You've found your first material! The 'Materials' section is now visible in your inventory."
+
+	Ensure that any actions that currently cost stamina will only cost 5 stamina.
+
 ...All buttons that use stamina now cost five stamina @@@(for testing purposes, will update later)@@@
 
 ...The "Look Around" button should not use stamina. Add more possible text log entries when looking around. Some describing the inside of the run down trailer, others describing the outsite/yard.
