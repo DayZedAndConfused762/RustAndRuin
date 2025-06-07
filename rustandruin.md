@@ -17,6 +17,8 @@ Actions:
 					!! Possible events:
 						!! Zombie attack: 15% chance.
 							security -5, less stamina recovered [half], if trailer security drops to 0[or is at 0], take 5-14 damage)
+						!! Rat theft: 5% chance.
+							rat's will still cooked food if available, rotten food if not.  if the player has no food they will take nothing.
 			 > Search Lot 27 
 					++ Grants random resources[Scrap Metal: 0-3, Wood: 0-1, Rags: 0-2, Dirty Water: 0-2, Rotten Food: 0-1]
 					$$ Cost: 5 Stamina
@@ -28,7 +30,7 @@ Actions:
 								!! Being stung by angry insects.
 								!! Scraping your leg on a loose board.
 								!! Getting a rash from irritating plants.
-					@@ Daily Limit: You can only perform "Search Lot 27" a maximum of 5 times per day [reset by sleeping]					
+					@@ Daily Limit: You can only perform "Search Lot 27" a maximum of 5 times per day [reset by sleeping past midnight]					
 				 > Crafting System(First unlocked upon finding Wood, Rags, Dirty Water or Rotten Food)
 					 > Craft Campfire (Enables boiling Dirty Water to Clean Water, and cooking Rotten Food to Cooked Food)
 							$$ Cost: 2 Wood
@@ -47,6 +49,7 @@ Actions:
 							$$ Cost: 2 Rags
 							$$ Cost: 5 Stamina
 							++ Gives: 1 Bandage
+					 > Craft Mountain Bike @@NEED TO ADD THIS@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 				 > Fortify Trailer (Increases Trailer Security by 5 points, out of a total of 100)
 						$$ Cost: 10 Stamina
 						$$ Base Cost (0-24): 2 Scrap Metal, 1 Rag
@@ -76,6 +79,11 @@ Actions:
 				 >> Return to Thornyvale Hub
 				 >> Return to Trailer
 			 > Southern Section
+			 	 > 
+				 > 
+				 > 
+				 >> Return to Thornyvale Hub
+				 >> Return to Trailer
 	  >> Return to Trailer [This transitions the action panel to Lot 27]
 				 
 
@@ -191,15 +199,16 @@ BALANCING
 Working
 -------------------------------------------------------
 
-...Create a new item: "Bottle of Beer".  This item will be listed in the "Supplies" category.  It can be consumed to lower thirst by thirst and increase stamina by 20.
-	...Implement a new location in the "South Section" of the park;
+***Create a new item: "Bottle of Beer".  This item will be listed in the "Supplies" category.  It can be consumed to lower thirst by thirst and increase stamina by 20.
+	***Implement a new location in the "South Section" of the park;
 		The Party Trailer
 			Description: "The interior of this trailer is a chaotic testament to pre-apocalypse revelry: overturned beer cans, deflated balloons, and glitter cover every surface. The lingering scent of stale alcohol and cheap perfume hangs in the air, a stark contrast to the silence outside."
 			Flavor/Theme: Escapism, fleeting joy, the abrupt end of normalcy.
 			Potential Unique Loot: 0-1 clean water, 0-2 rotten food, 0-2 wood, 10% chance to find "Bottle of Beer"
 			Hazards: 20% zombie chance (attracted by noise or the lingering scents), 2-7 damage. 25% chance of injury from broken glass underfoot, 1-3 damage.
 		***@@@[08:39:13 AM] [GLOBAL] TypeError: Cannot read properties of null (reading 'addEventListener') at blob:https://5yjxa7ep12nlnj2vg81f7t9x4t93uv46rb5ja42lby01l92lqh-h766678603.scf.usercontent.goog/65c62b7e-862e-4c2c-aed8-1a46644c2c04:3095:35@@@***
-			...Submitted for fix
+			***Submitted for fix
+				...The "Search Lot 27" function seems to be not working.  It displayed log messages, but then doesn't stop saying "Searching...".  The button remains locked out and no items are found.  Please fix.
 
 The "Bottle of Beer" is a consumable item, do not limit how many times it can be found.  It should be treated similar to other "Supplies" items.
 
