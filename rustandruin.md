@@ -177,11 +177,7 @@ Hazards: Moderate zombie chance (potential trapped walkers inside). Small chance
 				Potential Unique Loot: High chance of components, scrap metal, and a moderate chance of finding basic tools (e.g., wrench, screwdriver). Rare chance of discovering a "Blueprint Fragment" (a lore item or a precursor to unlocking advanced crafting recipes).
 				Hazards: Increased injury chance from sharp edges and unstable piles of junk. Low zombie chance.
 
-The Party Trailer
-	Description: "The interior of this trailer is a chaotic testament to pre-apocalypse revelry: overturned beer cans, deflated balloons, and glitter cover every surface. The lingering scent of stale alcohol and cheap perfume hangs in the air, a stark contrast to the silence outside."
-	Flavor/Theme: Escapism, fleeting joy, the abrupt end of normalcy.
-	Potential Unique Loot: High chance of finding empty bottles (for crafting Molotovs or water storage), alcohol (for crafting disinfectants or morale boosts), and small amounts of valuable trinkets (e.g., cheap jewelry that could be traded for a minor resource boost).
-	Hazards: Moderate zombie chance (attracted by noise or the lingering scents). Small chance of injury from broken glass underfoot.
+
 
 
 
@@ -195,9 +191,15 @@ BALANCING
 Working
 -------------------------------------------------------
 
+...Create a new item: "Bottle of Beer".  This item will be listed in the "Supplies" category.  It can be consumed to lower thirst by thirst and increase stamina by 20.
+	...Implement a new location in the "South Section" of the park;
+		The Party Trailer
+			Description: "The interior of this trailer is a chaotic testament to pre-apocalypse revelry: overturned beer cans, deflated balloons, and glitter cover every surface. The lingering scent of stale alcohol and cheap perfume hangs in the air, a stark contrast to the silence outside."
+			Flavor/Theme: Escapism, fleeting joy, the abrupt end of normalcy.
+			Potential Unique Loot: 0-1 clean water, 0-2 rotten food, 0-2 wood, 10% chance to find "Bottle of Beer"
+			Hazards: 20% zombie chance (attracted by noise or the lingering scents), 2-7 damage. 25% chance of injury from broken glass underfoot, 1-3 damage.
 
-
-
+...Update the log messages for the "Search Lot 27", add more messages that can be used, instead of just "You rummage through the debris and forgotten corners of your trailer..."
 
 -------------------------------------------------------
 Completed and QA'd
