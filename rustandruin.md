@@ -214,6 +214,8 @@ The "Bottle of Beer" is a consumable item, do not limit how many times it can be
 
 ...Update the log messages for the "Search Lot 27", add more messages that can be used, instead of just "You rummage through the debris and forgotten corners of your trailer..."
 
+...The items in the "Supplies" category are not showing correctly, there is no text in the buttons.
+
 -------------------------------------------------------
 Completed and QA'd
 -------------------------------------------------------
