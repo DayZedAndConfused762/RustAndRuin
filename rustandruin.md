@@ -198,6 +198,10 @@ Working
 			Flavor/Theme: Escapism, fleeting joy, the abrupt end of normalcy.
 			Potential Unique Loot: 0-1 clean water, 0-2 rotten food, 0-2 wood, 10% chance to find "Bottle of Beer"
 			Hazards: 20% zombie chance (attracted by noise or the lingering scents), 2-7 damage. 25% chance of injury from broken glass underfoot, 1-3 damage.
+		***@@@[08:39:13 AM] [GLOBAL] TypeError: Cannot read properties of null (reading 'addEventListener') at blob:https://5yjxa7ep12nlnj2vg81f7t9x4t93uv46rb5ja42lby01l92lqh-h766678603.scf.usercontent.goog/65c62b7e-862e-4c2c-aed8-1a46644c2c04:3095:35@@@***
+			...Submitted for fix
+
+The "Bottle of Beer" is a consumable item, do not limit how many times it can be found.  It should be treated similar to other "Supplies" items.
 
 ...Update the log messages for the "Search Lot 27", add more messages that can be used, instead of just "You rummage through the debris and forgotten corners of your trailer..."
 
