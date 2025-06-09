@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thornyvale: Rust and Ruin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles to override/enhance Tailwind for game atmosphere */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #2a2b27; /* Very dark desaturated green/brown for overgrown feel */
+            color: #c0c0b0; /* Muted off-white for readability */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        .game-container {
+            background-color: #3c3d38; /* Slightly lighter desaturated green/brown for container */
+            border: 2px solid #555650; /* Darker, muted border */
+            border-radius: 12px; /* Rounded corners for the main container */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5), 0 0 30px 5px rgba(0, 100, 0, 0.8); /* Enhanced dark green shadow */
+            max-width: 1200px; /* Increased max width for desktop (was 900px) */
+            width: 100%;
+            min-height: 95vh; /* Made the overall card taller */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Ensure rounded corners clip content */
+        }
+
+        .header-stats, .save-button-container {
+            padding: 1rem;
+            border-bottom: 1px solid #444540; /* Darker separator */
+        }
+
+        .header-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: space-around;
+            background-color: #4a4b45; /* Darker header */
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .stat-item {
+            font-weight: bold;
+            color: #909080; /* Muted grey-green for labels */
+        }
+
+        .stat-value {
+            color: #d0d0c0; /* Slightly brighter muted off-white for values */
+            font-weight: normal;
+        }
+
+        /* New layout for main content: actions, log, inventory */
+        .main-content-area {
+            display: flex;
+            flex-direction: row; /* Side-by-side on larger screens */
+            flex-grow: 1; /* Allow content to grow */
+            padding: 1rem;
+            gap: 1rem; /* Space between cards */
+            background-color: #3c3d38; /* Matches container background */
+        }
+
+        .card {
+            background-color: #4a4b45; /* Card background */
+            border: 1px solid #555650; /* Card border */
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Specific flex values for card widths */
+        .actions-card, .inventory-card {
+            flex: 0.7; /* Make these narrower */
+        }
+
+        .game-log-card {
+            flex: 1.6; /* Make the log wider */
+            min-height: 400px; /* Increased height for the log */
+            max-height: 400px; /* Ensure it doesn't grow beyond this */
+            overflow-y: auto; /* Scrollable */
+            background-color: #343530; /* Darker background for log */
+            white-space: pre-wrap; /* Preserve whitespace and wrap text */
+            word-wrap: break-word; /* Break long words */
+            line-height: 1.4;
+            font-size: 0.95rem;
+            color: #c8c8c0; /* Muted text for default log messages */
+            display: flex;
+            flex-direction: column; /* CHANGE: Newest messages at bottom */
+        }
+
+        /* Specific log message colors */
+        .log-message.warning {
+            color: #d97706; /* Tailwind orange-600, rusty orange */
+        }
+        .log-message.gain {
+            color: #65a30d; /* Tailwind lime-600, muted green */
+        }
+        .log-message.loss {
+            color: #a16207; /* Tailwind amber-700, darker muted brown */
+        }
+        .log-message.new-day {
+            color: #facc15; /* Tailwind yellow-400, subtle yellow-brown */
+            font-weight: bold;
+        }
+        .log-message.atmospheric {
+            color: #9ca3af; /* Tailwind gray-400, slightly lighter muted gray */
+            font-style: italic;
+        }
+
+
+        .card-title {
+            font-weight: bold;
+            color: #d0d0c0;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1.1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #555650;
+        }
+
+        .log-message {
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed rgba(192, 192, 176, 0.1); /* Muted, transparent dash */
+            flex-shrink: 0; /* Prevent messages from shrinking */
+        }
+
+        .log-message:first-child { 
+            margin-top: auto; /* Push content to bottom */
+        }
+
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Smaller buttons for card */
+            gap: 0.75rem;
+            flex-grow: 1; /* Allow buttons to push content down if needed */
+            align-content: flex-start; /* Align buttons to the top */
+        }
+
+        .action-buttons button {
+            background-color: #8b4513; /* SaddleBrown - a rusty brown */
+            color: white;
+            padding: 0.75rem 1rem; /* Slightly smaller padding */
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            font-size: 0.9rem; /* Slightly smaller font for buttons */
+        }
+
+        .action-buttons button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-buttons button:disabled {
+            background-color: #4b5563; /* Darker muted grey-green for disabled */
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+            pointer-events: none; /* Crucial for disabling clicks */
+        }
+
+        .button-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-bar-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: rgba(139, 69, 19, 0.6); /* More visible fill color */
+            width: 0%;
+            transition: width 0.1s linear;
+            z-index: 0;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05)); /* Subtle texture */
+        }
+
+        /* Inventory Item Styling */
+        .resource-display {
+            display: flex; /* Use flex for vertical stacking of groups */
+            flex-direction: column;
+            gap: 1rem; /* Space between groups */
+            flex-grow: 1;
+        }
+
+        .resource-group {
+            border: 1px solid #555650;
+            border-radius: 6px;
+            padding: 0.75rem;
+            background-color: #42433e; /* Slightly different background for groups */
+        }
+
+        .resource-group-title {
+            font-weight: bold;
+            color: #d0d0c0;
+            margin-bottom: 0.75rem;
+            text-align: center;
+            font-size: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed rgba(192, 192, 176, 0.1);
+        }
+
+        .resource-group-items {
+            display: grid;
+            grid-template-columns: 1fr; /* Stack items vertically within group */
+            gap: 0.5rem;
+        }
+
+        .resource-item {
+            background-color: #5a5b56; /* Standard background for all inventory items */
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            text-align: left;
+            font-size: 0.9rem;
+            color: #c0c0b0;
+            position: relative; /* Keep for progress bar */
+            overflow: hidden; /* Keep for progress bar */
+            /* Add a subtle background for the track */
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.05));
+        }
+
+        .resource-item.consumable-item {
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .resource-item.consumable-item:hover:not(.disabled-consumable) {
+            background-color: #6a6b66; /* Lighter hover for clickable items */
+            transform: translateY(-1px);
+        }
+
+        .resource-item.consumable-item:active:not(.disabled-consumable) {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Subtle active shadow */
+        }
+
+        .resource-item.disabled-consumable {
+            background-color: #4b5563; /* Tailwind gray-600 */
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+            pointer-events: none; /* Crucial for disabling clicks */
+        }
+
+        /* Specific colors for consumable items */
+        .resource-item.rottenFood-item { background-color: #7c2d12; /* Darker rusty red */ }
+        .resource-item.cookedFood-item { background-color: #a16207; /* Amber-700, cooked brown */ }
+        .resource-item.dirtyWater-item { background-color: #ca8a04; /* Yellow-600, murky yellow */ }
+        .resource-item.cleanWater-item { background-color: #2563eb; /* Blue-600, clean blue */ }
+        .resource-item.bandages-item { background-color: #5d4037; /* Brown-700, bandage color */ }
+        .resource-item.energyBar-item { background-color: #8b5cf6; /* Tailwind violet-500, purple */ } /* New color */
+        .resource-item.machete-item { background-color: #059669; } /* Tailwind emerald-600, green */
+        .resource-item.charredDocument-item { background-color: #4a4a4a; } /* Dark gray for charred document */
+        .resource-item.frontBikeTire-item { background-color: #6b7280; } /* Tailwind gray-500 for tire */
+        .resource-item.rearBikeTire-item { background-color: #6b7280; } /* Same color as front tire */
+        .resource-item.boltCutters-item { background-color: #4b5563; } /* Tailwind gray-600 for bolt cutters */
+        .resource-item.mre-item { background-color: #84cc16; } /* Lime-500 for MRE */
+        .resource-item.firstAidKit-item { background-color: #dc2626; } /* Red-600 for First Aid Kit */
+        .resource-item.bikeFrame-item { background-color: #166534; } /* Emerald-800 for Bike Frame */
+        .resource-item.rustyKey-item { background-color: #92400e; } /* Orange-800 for Rusty Key */
+        .resource-item.bottleOfBeer-item { background-color: #b45309; } /* Amber-700 for bottle of beer */
+
+
+        /* Ensure text color is readable on new backgrounds */
+        .resource-item.rottenFood-item,
+        .resource-item.cookedFood-item,
+        .resource-item.dirtyWater-item,
+        .resource-item.cleanWater-item,
+        .resource-item.bandages-item,
+        .resource-item.energyBar-item,
+        .resource-item.machete-item,
+        .resource-item.charredDocument-item,
+        .resource-item.frontBikeTire-item,
+        .resource-item.rearBikeTire-item,
+        .resource-item.boltCutters-item,
+        .resource-item.mre-item,
+        .resource-item.firstAidKit-item,
+        .resource-item.bikeFrame-item,
+        .resource-item.rustyKey-item,
+        .resource-item.bottleOfBeer-item {
+            color: white; /* Ensure text is white on colored backgrounds */
+        }
+
+
+        .resource-value {
+            font-weight: bold;
+            color: #e0e0d0;
+            float: right; /* Align value to the right */
+        }
+
+        .save-button-container {
+            padding: 1rem;
+            text-align: center;
+            background-color: #3c3d38; /* Matches container background */
+            border-top: 1px solid #444540; /* Darker separator */
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+
+        /* New Crafting Section */
+        .crafting-section {
+            padding: 1rem;
+            background-color: #3c3d38;
+            border-top: 1px solid #444540;
+            display: none; /* Hidden by default */
+        }
+        .crafting-section .card {
+            background-color: #4a4b45;
+            border: 1px solid #555650;
+            border-radius: 8px;
+            padding: 1rem;
+            width: 100%; /* Take full width of its container */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            body {
+                padding: 0;
+            }
+            .header-stats {
+                grid-template-columns: 1fr;
+            }
+            .game-log-card {
+                min-height: 150px; /* Adjust height for mobile */
+            }
+            .main-content-area {
+                flex-direction: column; /* Stack cards vertically on small screens */
+                padding: 0.5rem; /* Less padding */
+                gap: 0.5rem;
+            }
+            .card {
+                padding: 0.75rem; /* Less padding inside cards */
+            }
+            .card-title {
+                margin-bottom: 0.75rem;
+            }
+            .action-buttons, .resource-group-items {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Adjust button/resource layout */
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header-stats">
+            <div class="stat-item">Health: <span id="healthDisplay" class="stat-value"></span></div>
+            <div class="stat-item">Stamina: <span id="staminaDisplay" class="stat-value"></span></div>
+            <div class="stat-item">Hunger: <span id="hungerDisplay" class="stat-value"></span></div>
+            <div class="stat-item">Thirst: <span id="thirstDisplay" class="stat-value"></span></div>
+            <div class="stat-item">Day: <span id="dayDisplay" class="stat-value"></span></div>
+            <div class="stat-item">Time: <span id="timeDisplay" class="stat-value"></span></div>
+            <div class="stat-item">Trailer Security: <span id="trailerSecurityDisplay" class="stat-value"></span></div>
+        </div>
+
+        <div class="main-content-area">
+            <div class="card actions-card">
+                <div id="actionsCardTitle" class="card-title">Actions</div> <div id="mainActionButtons" class="action-buttons">
+                    <button id="lookAroundButton"><span class="button-text">Look Around</span><div class="progress-bar-fill"></div></button>
+                    <button id="sleepButton" style="display: none;"><span class="button-text">Sleep</span><div class="progress-bar-fill"></div></button>
+                    <button id="searchTrailerButton"><span class="button-text">Search Lot 27</span><div class="progress-bar-fill"></div></button>
+                    <button id="repairTrailerButton" style="display: none;"><span class="button-text">Fortify Trailer</span><div class="progress-bar-fill"></div></button> <button id="exploreParkButton" style="display: none;"><span class="button-text">Explore Park</span><div class="progress-bar-fill"></div></button>
+                </div>
+
+                <div id="parkExplorationButtons" class="action-buttons" style="display: none;">
+                    <button id="surveySurroundingButton"><span class="button-text">Survey Surrounding</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreNorthSectionButton" style="display: none;"><span class="button-text">North Section</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreSouthSectionButton" style="display: none;"><span class="button-text">South Section</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreCommunityCenterButton" style="display: none;"><span class="button-text">Community Center</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreCommunityCenterOfficeButton" style="display: none;"><span class="button-text">Office</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreCommunityCenterKitchenButton" style="display: none;"><span class="button-text">Kitchen</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreCommunityCenterGymButton" style="display: none;"><span class="button-text">Gym</span><div class="progress-bar-fill"></div></button>
+                    <button id="exploreCommunityCenterDilapidatedShackButton" style="display: none;"><span class="button-text">Dilapidated Shack</span><div class="progress-bar-fill"></div></button> <button id="exploreHoardersHavenButton" style="display: none;"><span class="button-text">Hoarder's Haven</span><div class="progress-bar-fill"></div></button> <button id="exploreOvergrownOasisButton" style="display: none;"><span class="button-text">Overgrown Oasis</span><div class="progress-bar-fill"></div></button> <button id="exploreBurnedOutShellButton" style="display: none;"><span class="button-text">Burned-Out Shell</span><div class="progress-bar-fill"></div></button> <button id="explorePreppersHideoutButton" style="display: none;"><span class="button-text">Prepper's Hideout</span><div class="progress-bar-fill"></div></button> <button id="exploreMakeshiftWorkshopButton" style="display: none;"><span class="button-text">Makeshift Workshop</span><div class="progress-bar-fill"></div></button> <button id="explorePartyTrailerButton" style="display: none;"><span class="button-text">Party Trailer</span><div class="progress-bar-fill"></div></button><button id="returnToThornyvaleHubButton" style="display: none;"><span class="button-text">Return to Thornyvale Hub</span><div class="progress-bar-fill"></div></button>
+                    <button id="returnToTrailerButton"><span class="button-text">Return to Trailer</span><div class="progress-bar-fill"></div></button>
+                </div>
+            </div>
+
+            <div id="gameLog" class="card game-log-card">
+                <div class="card-title">Log</div>
+                <div id="gameLogContent">
+                    </div>
+            </div>
+
+            <div class="card inventory-card">
+                <div class="card-title">Inventory</div>
+                <div id="resourceDisplay" class="resource-display">
+                    <div id="materialsGroup" class="resource-group" style="display: none;">
+                        <div class="resource-group-title">Materials</div>
+                        <div id="materialsDisplay" class="resource-group-items">
+                            </div>
+                    </div>
+                    <div id="suppliesGroup" class="resource-group" style="display: none;">
+                        <div class="resource-group-title">Supplies</div>
+                        <div id="suppliesDisplay" class="resource-group-items">
+                            </div>
+                    </div>
+                    <div id="gearGroup" class="resource-group" style="display: none;">
+                        <div class="resource-group-title">Gear</div>
+                        <div id="gearDisplay" class="resource-group-items">
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="craftingSection" class="crafting-section">
+            <div class="card">
+                <div class="card-title">Crafting</div>
+                <div id="craftingButtons" class="action-buttons">
+                    <button id="craftCampfireButton"><span class="button-text">Craft Campfire</span><div class="progress-bar-fill"></div></button>
+                    <button id="cookFoodButton" style="display: none;"><span class="button-text">Cook Food</span><div class="progress-bar-fill"></div></button>
+                    <button id="boilWaterButton" style="display: none;"><span class="button-text">Boil Water</span><div class="progress-bar-fill"></div></button>
+                    <button id="craftBandagesButton" style="display: none;"><span class="button-text">Craft Bandages</span><div class="progress-bar-fill"></div></button> </div>
+            </div>
+        </div>
+
+        <div class="save-button-container">
+            <button id="saveGameButton">Save Game</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Game State ---
+        let gameState = {};
+
+        function getNewGameState() {
+            return {
+                health: 100,
+                stamina: 50,
+                maxStamina: 100,
+                hunger: 0,
+                thirst: 0,
+                day: 1,
+                currentHour: 6,
+                trailerSecurity: 10,
+                currentLocation: 'trailer',
+                hasLookedAround: false,
+                hasSearchedTrailer: false,
+                hasCampfire: false,
+                hasSurveyedPark: false,
+                hasFoundRags: false,
+                hasFoundMachete: false,
+                hasFoundFrontBikeTire: false,
+                hasFoundRearBikeTire: false,
+                hasFoundBoltCutters: false,
+                hasFoundMaterials: false,
+                hasFoundSupplies: false,
+                hasFoundMRE: false,
+                hasFoundFirstAidKit: false,
+                hasFoundBikeFrame: false,
+                hasFoundRustyKey: false,
+                currentParkView: 'overview',
+
+                thornyvaleMap: {
+                    northSection: { discovered: false, scavengedCount: 0, description: 'A dense, overgrown part of the park with many collapsed trailers.', zombieChance: 0.3, subLocations: { hoardershaven: { discovered: false, description: 'a chaotic mess of discarded junk, boxes, and tarps.', zombieChance: 0.3 }, overgrownoasis: { discovered: false, description: 'vines and thick bushes have almost entirely swallowed this small trailer.', zombieChance: 0.05 }, burnedoutshell: { discovered: false, description: 'a charred husk, ravaged by fire.', zombieChance: 0.0 } } },
+                    southSection: { discovered: false, scavengedCount: 0, description: 'More open, with fewer trailers but some old sheds and garages.', zombieChance: 0.2, subLocations: { preppershideout: { discovered: false, description: 'a sturdy trailer with reinforced windows and a robust door.', zombieChance: 0.15 }, makeshiftworkshop: { discovered: false, description: 'a makeshift workshop with scattered tools and half-finished projects.', zombieChance: 0.1 }, partytrailer: { discovered: false, description: 'The interior of this trailer is a chaotic testament to pre-apocalypse revelry: overturned beer cans, deflated balloons, and glitter cover every surface. The lingering scent of stale alcohol and cheap perfume hangs in the air, a stark contrast to the silence outside.', zombieChance: 0.2 } } },
+                    communityCenter: { 
+                        discovered: false, 
+                        scavengedCount: 0, 
+                        description: 'The dilapidated community center, once a gathering spot, now eerily silent.', 
+                        zombieChance: 0.4,
+                        subLocations: { 
+                            office: { discovered: false, description: 'a dusty office filled with overturned desks and scattered papers.', zombieChance: 0.1 },
+                            kitchen: { discovered: false, description: 'a grimy kitchen, surprisingly intact but with a lingering smell of decay.', zombieChance: 0.2 },
+                            gym: { discovered: false, description: 'a large, echoing gym with broken windows and scattered sports equipment.', zombieChance: 0.3 },
+                            dilapidatedshack: { discovered: false, description: 'a small, dilapidated shack, barely standing.', zombieChance: 0.15, hasBeenUnlocked: false }
+                        }
+                    },
+                },
+
+                resources: {
+                    scrapMetal: 0, rags: 0, dirtyWater: 0, rottenFood: 0, wood: 0,
+                    components: 0, cleanWater: 0, cookedFood: 0, bandages: 0, energyBar: 0,
+                    machete: 0, charredDocument: 0, frontBikeTire: 0, rearBikeTire: 0, boltCutters: 0, mre: 0,
+                    firstAidKit: 0, bikeFrame: 0, rustyKey: 0, bottleOfBeer: 0,
+                },
+            };
+        }
+
+        // --- UI Elements ---
+        const healthDisplay = document.getElementById('healthDisplay');
+        const staminaDisplay = document.getElementById('staminaDisplay');
+        const hungerDisplay = document.getElementById('hungerDisplay');
+        const thirstDisplay = document.getElementById('thirstDisplay');
+        const dayDisplay = document.getElementById('dayDisplay');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const trailerSecurityDisplay = document.getElementById('trailerSecurityDisplay');
+        const resourceDisplay = document.getElementById('resourceDisplay');
+        const materialsGroupDiv = document.getElementById('materialsGroup');
+        const materialsDisplay = document.getElementById('materialsDisplay');
+        const suppliesGroupDiv = document.getElementById('suppliesGroup');
+        const suppliesDisplay = document.getElementById('suppliesDisplay');
+        const gearGroupDiv = document.getElementById('gearGroup');
+        const gearDisplayDiv = document.getElementById('gearDisplay');
+        const gameLog = document.getElementById('gameLog');
+        const gameLogContent = document.getElementById('gameLogContent');
+        const actionsCardTitle = document.getElementById('actionsCardTitle');
+
+        const mainActionButtonsDiv = document.getElementById('mainActionButtons');
+        const parkExplorationButtonsDiv = document.getElementById('parkExplorationButtons');
+        const craftingSectionDiv = document.getElementById('craftingSection');
+
+        const lookAroundButton = document.getElementById('lookAroundButton');
+        const sleepButton = document.getElementById('sleepButton'); 
+        const searchTrailerButton = document.getElementById('searchTrailerButton');
+        const repairTrailerButton = document.getElementById('repairTrailerButton');
+        const exploreParkButton = document.getElementById('exploreParkButton');
+
+        const craftCampfireButton = document.getElementById('craftCampfireButton');
+        const cookFoodButton = document.getElementById('cookFoodButton');
+        const boilWaterButton = document.getElementById('boilWaterButton');
+        const craftBandagesButton = document.getElementById('craftBandagesButton');
+
+        const exploreNorthSectionButton = document.getElementById('exploreNorthSectionButton');
+        const exploreSouthSectionButton = document.getElementById('exploreSouthSectionButton');
+        const exploreCommunityCenterButton = document.getElementById('exploreCommunityCenterButton');
+        const returnToTrailerButton = document.getElementById('returnToTrailerButton');
+        const saveGameButton = document.getElementById('saveGameButton');
+
+        const surveySurroundingButton = document.getElementById('surveySurroundingButton');
+        const exploreCommunityCenterOfficeButton = document.getElementById('exploreCommunityCenterOfficeButton');
+        const exploreCommunityCenterKitchenButton = document.getElementById('exploreCommunityCenterKitchenButton');
+        const exploreCommunityCenterGymButton = document.getElementById('exploreCommunityCenterGymButton');
+        const exploreCommunityCenterDilapidatedShackButton = document.getElementById('exploreCommunityCenterDilapidatedShackButton');
+        const returnToThornyvaleHubButton = document.getElementById('returnToThornyvaleHubButton');
+        const exploreHoardersHavenButton = document.getElementById('exploreHoardersHavenButton');
+        const exploreOvergrownOasisButton = document.getElementById('exploreOvergrownOasisButton');
+        const exploreBurnedOutShellButton = document.getElementById('exploreBurnedOutShellButton');
+        const explorePreppersHideoutButton = document.getElementById('explorePreppersHideoutButton');
+        const exploreMakeshiftWorkshopButton = document.getElementById('exploreMakeshiftWorkshopButton');
+        const explorePartyTrailerButton = document.getElementById('explorePartyTrailerButton');
+
+        // Store original button text for resetting after actions
+        const originalButtonTexts = new Map();
+        document.querySelectorAll('#mainActionButtons button, #parkExplorationButtons button, #craftingButtons button').forEach(button => {
+            const buttonTextSpan = button.querySelector('.button-text');
+            if (buttonTextSpan) {
+                originalButtonTexts.set(button.id, buttonTextSpan.textContent);
+            }
+        });
+
+        // --- Helper Function for Display Names ---
+        function getDisplayLocationName(key) {
+            if (key === 'communityCenterOffice') return 'Community Center Office';
+            if (key === 'communityCenterKitchen') return 'Community Center Kitchen';
+            if (key === 'communityCenterGym') return 'Community Center Gym';
+            if (key === 'communityCenterdilapidatedshack') return 'Dilapidated Shack';
+            if (key === 'northSectionhoardershaven') return 'Hoarder\'s Haven';
+            if (key === 'northSectionovergrownoasis') return 'Overgrown Oasis';
+            if (key === 'northSectionburnedoutshell') return 'Burned-Out Shell';
+            if (key === 'southSectionpreppershideout') return 'Prepper\'s Hideout';
+            if (key === 'southSectionmakeshiftworkshop') return 'Makeshift Workshop';
+            if (key === 'southSectionpartytrailer') return 'Party Trailer';
+            return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        }
+
+        // --- Data Definitions ---
+        const charredDocumentSnippets = [
+            "A scorched page from a diary: '...the fire spread so fast. No time to save anything. Just run.'",
+            "A half-burnt letter: '...tell Sarah I love her. Don't come back for me. It's too late.'",
+            "A singed child's drawing: a stick figure family, smiling, with a large, unidentifiable dark smudge over one figure.",
+            "A charred grocery list: '...milk, bread, bandages, batteries. Need more batteries. So many batteries.'",
+            "A fragment of a newspaper: '...reports of unrest growing. Authorities advise citizens to remain indoors. Looting...' The rest is ash."
+        ];
+
+        const strainMessages = [
+            "Your body protests the exertion. You lose ",
+            "The strain of your hunger/thirst takes its toll. You lose ",
+            "You feel faint from lack of sustenance. You lose ",
+            "Your body aches from the effort without proper fuel. You lose "
+        ];
+
+        const suppliesList = ['dirtyWater', 'rottenFood', 'cleanWater', 'cookedFood', 'bandages', 'energyBar', 'charredDocument', 'mre', 'firstAidKit', 'bottleOfBeer'];
+
+        // --- Core Game Functions ---
+
+        function updateUI() {
+            healthDisplay.textContent = gameState.health;
+            staminaDisplay.textContent = gameState.stamina;
+            hungerDisplay.textContent = gameState.hunger;
+            thirstDisplay.textContent = gameState.thirst;
+            dayDisplay.textContent = gameState.day;
+            timeDisplay.textContent = `${String(gameState.currentHour).padStart(2, '0')}:00`;
+            trailerSecurityDisplay.textContent = `${gameState.trailerSecurity}/100`;
+
+            materialsDisplay.innerHTML = '';
+            suppliesDisplay.innerHTML = '';
+            gearDisplayDiv.innerHTML = '';
+
+            materialsGroupDiv.style.display = 'none';
+            suppliesGroupDiv.style.display = 'none';
+            gearGroupDiv.style.display = 'none';
+
+            const materials = ['scrapMetal', 'wood', 'rags', 'components'];
+            const gear = ['machete', 'frontBikeTire', 'rearBikeTire', 'boltCutters', 'bikeFrame', 'rustyKey'];
+
+            let foundAnyMaterials = false;
+            for (const resourceType of materials) {
+                const amount = gameState.resources[resourceType];
+                if (amount > 0) {
+                    foundAnyMaterials = true;
+                    const resourceItem = document.createElement('div');
+                    const displayName = resourceType.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                    resourceItem.className = 'resource-item';
+                    resourceItem.innerHTML = `<span class="button-text">${displayName}: <span class="resource-value">${amount}</span></span><div class="progress-bar-fill"></div>`;
+                    materialsDisplay.appendChild(resourceItem);
+                }
+            }
+            if (foundAnyMaterials) materialsGroupDiv.style.display = 'block';
+
+            let foundAnySupplies = false;
+            for (const resourceType of suppliesList) {
+                const amount = gameState.resources[resourceType];
+                if (amount > 0) {
+                    foundAnySupplies = true;
+                    const resourceItem = document.createElement('div');
+                    const displayName = resourceType.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                    
+                    resourceItem.className = `resource-item ${resourceType}-item consumable-item`;
+                    resourceItem.dataset.resourceType = resourceType;
+
+                    let isDisabled = false;
+                    if (resourceType === 'rottenFood' || resourceType === 'cookedFood') {
+                        isDisabled = amount <= 0 || gameState.hunger <= 0;
+                    } else if (resourceType === 'dirtyWater' || resourceType === 'cleanWater') {
+                        isDisabled = amount <= 0 || gameState.thirst <= 0;
+                    } else if (resourceType === 'bandages' || resourceType === 'firstAidKit') {
+                        isDisabled = amount <= 0 || gameState.health >= 100;
+                    } else if (resourceType === 'energyBar') {
+                        isDisabled = amount <= 0 || gameState.stamina >= gameState.maxStamina;
+                    } else if (resourceType === 'charredDocument') {
+                         isDisabled = amount <= 0;
+                    } else if (resourceType === 'mre') {
+                        isDisabled = amount <= 0 || (gameState.hunger <= 0 && gameState.thirst <= 0);
+                    } else if (resourceType === 'bottleOfBeer') {
+                        isDisabled = amount <= 0 || (gameState.thirst <= 0 && gameState.stamina >= gameState.maxStamina);
+                    }
+
+                    if (isDisabled) {
+                        resourceItem.classList.add('disabled-consumable');
+                    }
+                    resourceItem.onclick = isDisabled ? null : handleConsumableClick;
+                    
+                    resourceItem.innerHTML = `<span class="button-text">${displayName}: <span class="resource-value">${amount}</span></span><div class="progress-bar-fill"></div>`;
+                    suppliesDisplay.appendChild(resourceItem);
+                }
+            }
+            if (foundAnySupplies) suppliesGroupDiv.style.display = 'block';
+
+            let foundAnyGear = false;
+            for (const resourceType of gear) {
+                const amount = gameState.resources[resourceType];
+                if (amount > 0) {
+                    foundAnyGear = true;
+                    const resourceItem = document.createElement('div');
+                    const displayName = resourceType.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                    resourceItem.className = `resource-item ${resourceType}-item`;
+                    resourceItem.innerHTML = `<span class="button-text">${displayName}: <span class="resource-value">${amount}</span></span><div class="progress-bar-fill"></div>`;
+                    gearDisplayDiv.appendChild(resourceItem);
+                }
+            }
+            if (foundAnyGear) gearGroupDiv.style.display = 'block';
+
+            // --- Button Visibility Logic ---
+            const allParkButtons = [
+                surveySurroundingButton, exploreNorthSectionButton, exploreSouthSectionButton, exploreCommunityCenterButton,
+                exploreCommunityCenterOfficeButton, exploreCommunityCenterKitchenButton, exploreCommunityCenterGymButton,
+                exploreCommunityCenterDilapidatedShackButton, exploreHoardersHavenButton, exploreOvergrownOasisButton,
+                exploreBurnedOutShellButton, explorePreppersHideoutButton, exploreMakeshiftWorkshopButton, explorePartyTrailerButton,
+                returnToThornyvaleHubButton, returnToTrailerButton
+            ];
+            allParkButtons.forEach(btn => { if(btn) btn.style.display = 'none'; });
+
+            if (gameState.currentLocation === 'trailer') {
+                actionsCardTitle.textContent = 'Trailer 27';
+                mainActionButtonsDiv.style.display = 'grid';
+                parkExplorationButtonsDiv.style.display = 'none';
+
+                lookAroundButton.style.display = 'block';
+                sleepButton.style.display = gameState.hasLookedAround ? 'block' : 'none';
+                searchTrailerButton.style.display = gameState.hasLookedAround ? 'block' : 'none';
+                repairTrailerButton.style.display = gameState.hasSearchedTrailer ? 'block' : 'none';
+                exploreParkButton.style.display = gameState.trailerSecurity >= 25 ? 'block' : 'none';
+                craftingSectionDiv.style.display = gameState.hasSearchedTrailer ? 'block' : 'none';
+
+            } else if (gameState.currentLocation === 'thornyvale') {
+                mainActionButtonsDiv.style.display = 'none';
+                parkExplorationButtonsDiv.style.display = 'grid';
+                craftingSectionDiv.style.display = 'none'; // No crafting in the park
+                returnToTrailerButton.style.display = 'block';
+                
+                if (!gameState.hasSurveyedPark) {
+                    actionsCardTitle.textContent = 'Thornyvale';
+                    surveySurroundingButton.style.display = 'block';
+                } else {
+                    if (gameState.currentParkView === 'overview') {
+                        actionsCardTitle.textContent = 'Thornyvale';
+                        exploreNorthSectionButton.style.display = gameState.thornyvaleMap.northSection.discovered ? 'block' : 'none';
+                        exploreSouthSectionButton.style.display = gameState.thornyvaleMap.southSection.discovered ? 'block' : 'none';
+                        exploreCommunityCenterButton.style.display = gameState.thornyvaleMap.communityCenter.discovered ? 'block' : 'none';
+                    } else if (gameState.currentParkView === 'communityCenter') {
+                        actionsCardTitle.textContent = 'Community Center';
+                        exploreCommunityCenterOfficeButton.style.display = 'block';
+                        exploreCommunityCenterKitchenButton.style.display = 'block';
+                        exploreCommunityCenterGymButton.style.display = 'block';
+                        exploreCommunityCenterDilapidatedShackButton.style.display = 'block';
+                        returnToThornyvaleHubButton.style.display = 'block';
+                    } else if (gameState.currentParkView === 'northSection') {
+                        actionsCardTitle.textContent = 'North Section';
+                        exploreHoardersHavenButton.style.display = 'block';
+                        exploreOvergrownOasisButton.style.display = 'block';
+                        exploreBurnedOutShellButton.style.display = 'block';
+                        returnToThornyvaleHubButton.style.display = 'block';
+                    } else if (gameState.currentParkView === 'southSection') {
+                        actionsCardTitle.textContent = 'South Section';
+                        explorePreppersHideoutButton.style.display = 'block';
+                        exploreMakeshiftWorkshopButton.style.display = 'block';
+                        explorePartyTrailerButton.style.display = 'block';
+                        returnToThornyvaleHubButton.style.display = 'block';
+                    }
+                }
+            }
+            
+            // --- Button Disabled States ---
+            repairTrailerButton.disabled = gameState.trailerSecurity >= 100;
+            searchTrailerButton.disabled = false; // Limit removed
+
+            // Crafting button states
+            craftCampfireButton.disabled = gameState.hasCampfire || gameState.resources.wood < 2;
+            craftBandagesButton.style.display = gameState.hasFoundRags ? 'block' : 'none';
+            craftBandagesButton.disabled = gameState.resources.rags < 2;
+            
+            cookFoodButton.style.display = gameState.hasCampfire ? 'block' : 'none';
+            cookFoodButton.disabled = !gameState.hasCampfire || gameState.resources.rottenFood < 2 || gameState.resources.wood < 1;
+            
+            boilWaterButton.style.display = gameState.hasCampfire ? 'block' : 'none';
+            boilWaterButton.disabled = !gameState.hasCampfire || gameState.resources.dirtyWater < 2 || gameState.resources.wood < 1;
+        }
+
+        function handleConsumableClick(event) {
+            const resourceItemDiv = event.currentTarget;
+            if (resourceItemDiv.classList.contains('disabled-consumable')) return;
+
+            const resourceType = resourceItemDiv.dataset.resourceType;
+            let actionFunction, delayMs, actionText;
+
+            const actionMap = {
+                'rottenFood': [() => _eatFoodLogic('rottenFood'), 2000, "Eating..."],
+                'cookedFood': [() => _eatFoodLogic('cookedFood'), 2000, "Eating..."],
+                'dirtyWater': [() => _drinkWaterLogic('dirtyWater'), 2000, "Drinking..."],
+                'cleanWater': [() => _drinkWaterLogic('cleanWater'), 2000, "Drinking..."],
+                'bandages': [_useBandageLogic, 3000, "Applying..."],
+                'energyBar': [_useEnergyBarLogic, 2000, "Consuming..."],
+                'charredDocument': [_useCharredDocumentLogic, 1000, "Reading..."],
+                'mre': [_useMRELogic, 2500, "Eating MRE..."],
+                'firstAidKit': [_useFirstAidKitLogic, 3000, "Using kit..."],
+                'bottleOfBeer': [_useBottleOfBeerLogic, 2000, "Chugging beer..."],
+            };
+
+            if (actionMap[resourceType]) {
+                [actionFunction, delayMs, actionText] = actionMap[resourceType];
+                performActionWithDelay(resourceItemDiv, actionFunction, delayMs, actionText);
+            } else {
+                console.error('Unknown consumable type or action not defined for this resource:', resourceType);
+            }
+        }
+        
+        const MAX_LOG_ENTRIES = 100;
+        function addMessage(text, type = 'default') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `log-message ${type}`;
+            messageDiv.textContent = text;
+            
+            if (gameLogContent) {
+                gameLogContent.append(messageDiv); // Add to bottom
+
+                while (gameLogContent.children.length > MAX_LOG_ENTRIES) {
+                    gameLogContent.removeChild(gameLogContent.firstChild);
+                }
+            }
+            if (gameLog) {
+                gameLog.scrollTop = gameLog.scrollHeight; // Scroll to bottom
+            }
+        }
+
+        function addAtmosphericMessage() {
+             const messages = {
+                dawn: [
+                    'The first faint light of dawn barely pierces the gloom.',
+                    'A cold mist hangs low as the new day begins.',
+                ],
+                midDay: [
+                    'The sun beats down, making the air thick and still.',
+                    'A buzzing insect is the only sound, a reminder of life persisting.',
+                ],
+                dusk: [
+                    'The sky bleeds orange and purple as dusk descends.',
+                    'Long shadows stretch like grasping fingers across the ground.',
+                ],
+                night: [
+                    'The darkness is absolute, broken only by distant, unseen shapes.',
+                    'Every creak and rustle sounds amplified in the dead of night.',
+                    'A cold wind howls, carrying the scent of decay.',
+                ]
+            };
+            let messagePool;
+            if (gameState.currentHour >= 5 && gameState.currentHour <= 7) messagePool = messages.dawn;
+            else if (gameState.currentHour >= 8 && gameState.currentHour <= 16) messagePool = messages.midDay;
+            else if (gameState.currentHour >= 17 && gameState.currentHour <= 19) messagePool = messages.dusk;
+            else messagePool = messages.night;
+            
+            if (Math.random() < 0.2) { // 20% chance
+                addMessage(messagePool[Math.floor(Math.random() * messagePool.length)], 'atmospheric');
+            }
+        }
+        
+        function passTime(hours) {
+            gameState.currentHour += hours;
+
+            if (gameState.currentHour >= 24) {
+                gameState.currentHour -= 24;
+                gameState.day++;
+                addMessage(`A new day dawns. Day ${gameState.day}.`, 'new-day');
+            }
+
+            gameState.hunger = Math.min(100, gameState.hunger + (hours * 2));
+            gameState.thirst = Math.min(100, gameState.thirst + (hours * 3));
+
+            if (gameState.hunger >= 80) {
+                const oldHealth = gameState.health;
+                gameState.health = Math.max(0, gameState.health - 1);
+                if (oldHealth > gameState.health) console.log(`[HEALTH CHANGE] Health decreased by 1 due to High Hunger. Current health: ${gameState.health}`);
+            }
+            if (gameState.thirst >= 80) {
+                const oldHealth = gameState.health;
+                gameState.health = Math.max(0, gameState.health - 2);
+                 if (oldHealth > gameState.health) console.log(`[HEALTH CHANGE] Health decreased by 2 due to High Thirst. Current health: ${gameState.health}`);
+            }
+            if (gameState.hunger >= 90 || gameState.thirst >= 90) {
+                const oldStamina = gameState.stamina;
+                gameState.stamina = Math.max(0, gameState.stamina - 5);
+                if (oldStamina > gameState.stamina) console.log(`[STAMINA CHANGE] Stamina decreased by 5 due to Extreme Hunger/Thirst. Current stamina: ${gameState.stamina}`);
+            }
+            
+            // REMOVED: Stamina no longer regenerates with time passage.
+
+            updateUI();
+        }
+
+        function addToInventory(type, amount) {
+            if (gameState.resources[type] === undefined) {
+                console.error(`Attempted to gain unknown resource type: ${type}`);
+                return;
+            }
+            gameState.resources[type] += amount;
+
+            const discoveryFlags = {
+                'rags': 'hasFoundRags', 'machete': 'hasFoundMachete', 'frontBikeTire': 'hasFoundFrontBikeTire',
+                'rearBikeTire': 'hasFoundRearBikeTire', 'boltCutters': 'hasFoundBoltCutters', 'mre': 'hasFoundMRE', 
+                'firstAidKit': 'hasFoundFirstAidKit', 'bikeFrame': 'hasFoundBikeFrame', 'rustyKey': 'hasFoundRustyKey'
+            };
+            const flag = discoveryFlags[type];
+            if (flag && !gameState[flag] && amount > 0) {
+                gameState[flag] = true;
+                const displayName = type.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                addMessage(`You found a ${displayName} for the first time! This could be useful.`, 'gain');
+            }
+            updateUI();
+        }
+
+        function loseResource(type, amount) {
+            if (gameState.resources[type] !== undefined && gameState.resources[type] >= amount) {
+                gameState.resources[type] -= amount;
+                updateUI();
+                return true;
+            }
+            addMessage(`Not enough ${type.replace(/([A-Z])/g, ' $1').toLowerCase()}.`);
+            return false;
+        }
+
+        // --- Action Delay with Progress Bar ---
+        let isPerformingAction = false;
+        let actionQueue = [];
+
+        function performActionWithDelay(element, actionFunction, delayMs, actionText) {
+            if (isPerformingAction) {
+                actionQueue.push({ element, actionFunction, delayMs, actionText });
+                return;
+            }
+            isPerformingAction = true;
+
+            const allActionButtons = document.querySelectorAll('.action-buttons button');
+            allActionButtons.forEach(btn => btn.disabled = true);
+            const allConsumableItems = document.querySelectorAll('.resource-item.consumable-item');
+            allConsumableItems.forEach(item => item.classList.add('disabled-consumable'));
+
+            const originalTextSpan = element.querySelector('.button-text');
+            const originalText = originalTextSpan ? originalButtonTexts.get(element.id) || originalTextSpan.textContent : element.textContent;
+            const progressBarFill = element.querySelector('.progress-bar-fill');
+
+            if (!progressBarFill) {
+                console.error("CRITICAL ERROR: progressBarFill element not found. Action will proceed without visual progress bar.");
+                actionFunction(); // Execute action immediately
+                isPerformingAction = false;
+                allActionButtons.forEach(btn => btn.disabled = false);
+                allConsumableItems.forEach(item => item.classList.remove('disabled-consumable'));
+                updateUI();
+                if (actionQueue.length > 0) {
+                    const nextAction = actionQueue.shift();
+                    performActionWithDelay(nextAction.element, nextAction.actionFunction, nextAction.delayMs, nextAction.actionText);
+                }
+                return;
+            }
+
+            if (originalTextSpan) originalTextSpan.textContent = actionText;
+            progressBarFill.style.width = '0%';
+            progressBarFill.style.transition = `width ${delayMs / 1000}s linear`;
+            requestAnimationFrame(() => progressBarFill.style.width = '100%');
+
+            setTimeout(() => {
+                const isConsumableAction = element.dataset.resourceType && suppliesList.includes(element.dataset.resourceType);
+                if ((gameState.hunger > 85 || gameState.thirst > 85) && !isConsumableAction) {
+                    const oldHealth = gameState.health;
+                    const damagePerStrain = Math.floor(Math.random() * 5) + 1;
+                    gameState.health = Math.max(0, gameState.health - damagePerStrain);
+                    const actualDamage = oldHealth - gameState.health;
+                    if (actualDamage > 0) {
+                        addMessage(`${strainMessages[Math.floor(Math.random() * strainMessages.length)]}${actualDamage} health.`, 'warning');
+                        console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Hunger/Thirst Strain. Current health: ${gameState.health}`);
+                    }
+                }
+
+                actionFunction();
+                addAtmosphericMessage();
+                
+                progressBarFill.style.transition = 'none';
+                progressBarFill.style.width = '0%';
+                if (originalTextSpan) originalTextSpan.textContent = originalText;
+
+                isPerformingAction = false;
+                allActionButtons.forEach(btn => btn.disabled = false);
+                allConsumableItems.forEach(item => item.classList.remove('disabled-consumable'));
+                updateUI();
+
+                if (actionQueue.length > 0) {
+                    const nextAction = actionQueue.shift();
+                    performActionWithDelay(nextAction.element, nextAction.actionFunction, nextAction.delayMs, nextAction.actionText);
+                }
+            }, delayMs);
+        }
+
+        // --- Action Functions ---
+
+        function lookAround() {
+            const messages = [
+                'You glance around your dilapidated trailer. It feels a bit more secure now, but the outside world still holds dangers.',
+                'Dust motes dance in the slivers of light filtering through the gaps in the boards. Your trailer is a quiet refuge.',
+                'The worn-out couch still bears the imprint of countless nights spent here, a faint smell of mildew clinging to its fabric.',
+                'Through a gap in the boarded window, you see overgrown weeds choking what was once a small garden.',
+            ];
+            addMessage(messages[Math.floor(Math.random() * messages.length)]);
+            if (!gameState.hasLookedAround) {
+                gameState.hasLookedAround = true;
+                addMessage("You feel a surge of determination. Time to survive.", 'new-day');
+            }
+        }
+
+        function sleep() {
+            addMessage('You settle down for some restless sleep.');
+            passTime(8);
+            
+            let eventOccurred = false; 
+            if (Math.random() < 0.05 && (gameState.resources.cookedFood > 0 || gameState.resources.rottenFood > 0)) {
+                const foodType = gameState.resources.cookedFood > 0 ? 'cookedFood' : 'rottenFood';
+                loseResource(foodType, 1);
+                addMessage('You hear scurrying in the night. In the morning, you find some food has been stolen by rats!', 'loss');
+                eventOccurred = true; 
+            }
+
+            if (!eventOccurred && Math.random() < 0.15) { 
+                eventOccurred = true; 
+                addMessage('You were woken by sounds of scratching and groaning outside!', 'warning');
+                gameState.trailerSecurity = Math.max(0, gameState.trailerSecurity - 5);
+                addMessage('Your trailer security was compromised by 5 points.', 'warning');
+                if (gameState.trailerSecurity <= 0) {
+                    const oldHealth = gameState.health;
+                    const damage = Math.floor(Math.random() * 10) + 5;
+                    gameState.health = Math.max(0, gameState.health - damage);
+                    const actualDamage = oldHealth - gameState.health;
+                    addMessage(`A zombie broke through! You took ${actualDamage} damage defending yourself!`, 'warning');
+                    console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} due to Zombie Attack. Current health: ${gameState.health}`);
+                }
+            }
+
+            const oldStamina = gameState.stamina;
+            let staminaRecovered;
+            if (eventOccurred) {
+                staminaRecovered = Math.floor(Math.random() * 11) + 20; // 20-30
+                addMessage(`Due to the disturbance, you only recovered ${staminaRecovered} stamina.`, 'loss');
+            } else {
+                staminaRecovered = Math.floor(Math.random() * 21) + 40; // 40-60
+                addMessage('The night passed quietly.', 'atmospheric'); 
+                addMessage(`You recovered ${staminaRecovered} stamina.`, 'gain');
+            }
+            gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + staminaRecovered);
+            console.log(`[STAMINA CHANGE] Stamina changed by ${gameState.stamina - oldStamina} after sleep. Current stamina: ${gameState.stamina}`);
+            addMessage('You wake up, ready for a new day.');
+        }
+
+        function _eatFoodLogic(foodType) {
+            if (gameState.hunger <= 0) {
+                addMessage('You are not hungry right now.', 'default');
+                return;
+            }
+            if (loseResource(foodType, 1)) {
+                const hungerReduced = (foodType === 'cookedFood') ? 40 : 20;
+                gameState.hunger = Math.max(0, gameState.hunger - hungerReduced);
+                addMessage(`You ate some ${foodType.replace(/([A-Z])/g, ' $1').toLowerCase()}. Hunger decreased by ${hungerReduced}.`, 'loss');
+                
+                if (foodType === 'rottenFood' && Math.random() < 0.1) {
+                    const oldHealth = gameState.health;
+                    const damage = Math.floor(Math.random() * 3) + 1;
+                    gameState.health = Math.max(0, gameState.health - damage);
+                    const actualDamage = oldHealth - gameState.health;
+                    addMessage(`You feel queasy. You lost ${actualDamage} health.`, 'warning');
+                    console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} from Rotten Food. Current health: ${gameState.health}`);
+                }
+            }
+        }
+
+        function _drinkWaterLogic(waterType) {
+            if (gameState.thirst <= 0) {
+                addMessage('You are not thirsty right now.', 'default');
+                return;
+            }
+            if (loseResource(waterType, 1)) {
+                const thirstReduced = (waterType === 'cleanWater') ? 50 : 25;
+                gameState.thirst = Math.max(0, gameState.thirst - thirstReduced);
+                addMessage(`You drank some ${waterType.replace(/([A-Z])/g, ' $1').toLowerCase()}. Thirst decreased by ${thirstReduced}.`, 'loss');
+                
+                if (waterType === 'dirtyWater' && Math.random() < 0.2) {
+                    const oldHealth = gameState.health;
+                    const damage = Math.floor(Math.random() * 5) + 1;
+                    gameState.health = Math.max(0, gameState.health - damage);
+                    const actualDamage = oldHealth - gameState.health;
+                    addMessage(`You feel unwell. You lost ${actualDamage} health.`, 'warning');
+                    console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} from Dirty Water. Current health: ${gameState.health}`);
+                }
+            }
+        }
+
+        function _useBandageLogic() {
+            if (gameState.health >= 100) {
+                addMessage('You are already at full health.', 'default');
+                return;
+            }
+            if (loseResource('bandages', 1)) {
+                const oldHealth = gameState.health;
+                const healthRestored = Math.floor(Math.random() * 2) + 10; // 10-11
+                gameState.health = Math.min(100, gameState.health + healthRestored);
+                const actualHealthGained = gameState.health - oldHealth;
+                addMessage(`You used a bandage and restored ${actualHealthGained} health.`, 'gain');
+                console.log(`[HEALTH CHANGE] Health increased by ${actualHealthGained} from Bandage. Current health: ${gameState.health}`);
+            }
+        }
+
+        function _useEnergyBarLogic() {
+            if (gameState.stamina >= gameState.maxStamina) {
+                addMessage('You are already at full stamina.', 'default');
+                return;
+            }
+            if (loseResource('energyBar', 1)) {
+                const oldStamina = gameState.stamina;
+                const staminaRestored = Math.floor(Math.random() * 2) + 15; // 15-16
+                gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + staminaRestored);
+                const actualStaminaGained = gameState.stamina - oldStamina;
+                addMessage(`You ate an energy bar and restored ${actualStaminaGained} stamina.`, 'gain');
+                console.log(`[STAMINA CHANGE] Stamina increased by ${actualStaminaGained} from Energy Bar. Current stamina: ${gameState.stamina}`);
+            }
+        }
+
+        function _useMRELogic() {
+            if (gameState.hunger <= 0 && gameState.thirst <= 0) {
+                addMessage('You are neither hungry nor thirsty.', 'default');
+                return;
+            }
+            if (loseResource('mre', 1)) {
+                const oldHunger = gameState.hunger;
+                const oldThirst = gameState.thirst;
+                gameState.hunger = Math.max(0, gameState.hunger - 60);
+                gameState.thirst = Math.max(0, gameState.thirst - 20);
+                addMessage(`You consumed an MRE. Hunger reduced by ${oldHunger - gameState.hunger}, thirst reduced by ${oldThirst - gameState.thirst}.`, 'gain');
+            }
+        }
+
+        function _useFirstAidKitLogic() {
+            if (gameState.health >= 100) {
+                addMessage('You are already at full health.', 'default');
+                return;
+            }
+            if (loseResource('firstAidKit', 1)) {
+                const oldHealth = gameState.health;
+                const healthRestored = Math.floor(Math.random() * 21) + 15; // 15-35
+                gameState.health = Math.min(100, gameState.health + healthRestored);
+                const actualHealthGained = gameState.health - oldHealth;
+                addMessage(`You used a First Aid Kit and restored ${actualHealthGained} health.`, 'gain');
+                console.log(`[HEALTH CHANGE] Health increased by ${actualHealthGained} from First Aid Kit. Current health: ${gameState.health}`);
+            }
+        }
+
+        function _useCharredDocumentLogic() {
+            if (loseResource('charredDocument', 1)) {
+                const snippet = charredDocumentSnippets[Math.floor(Math.random() * charredDocumentSnippets.length)];
+                addMessage(`You decipher a document: "${snippet}"`, 'atmospheric');
+            }
+        }
+
+        function _useBottleOfBeerLogic() {
+            if (gameState.thirst <= 0 && gameState.stamina >= gameState.maxStamina) {
+                addMessage('No need for liquid courage right now.', 'default');
+                return;
+            }
+            if (loseResource('bottleOfBeer', 1)) {
+                const oldThirst = gameState.thirst;
+                const oldStamina = gameState.stamina;
+                gameState.thirst = Math.max(0, gameState.thirst - 30);
+                gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + 20);
+                let message = `You chugged a beer.`;
+                if (gameState.thirst < oldThirst) message += ` Thirst reduced by ${oldThirst - gameState.thirst}.`;
+                if (gameState.stamina > oldStamina) message += ` Stamina increased by ${gameState.stamina - oldStamina}.`;
+                addMessage(message, 'gain');
+                console.log(`[STAMINA CHANGE] Stamina changed by ${gameState.stamina - oldStamina} from Beer. Current stamina: ${gameState.stamina}`);
+            }
+        }
+        
+        function searchTrailer() {
+            const staminaCost = 5;
+            if (gameState.stamina < staminaCost) {
+                addMessage(`You are too tired to search. You need ${staminaCost} stamina.`, 'warning');
+                return;
+            }
+
+            addMessage('You rummage through the debris and forgotten corners...', 'atmospheric');
+            passTime(2);
+            gameState.stamina = Math.max(0, gameState.stamina - staminaCost);
+
+            const foundItems = {};
+            const lootTable = { scrapMetal: 4, rags: 3, dirtyWater: 3, rottenFood: 2, wood: 2 };
+            for(const [item, max] of Object.entries(lootTable)) {
+                const amount = Math.floor(Math.random() * max);
+                if(amount > 0) {
+                    addToInventory(item, amount);
+                    foundItems[item] = amount;
+                }
+            }
+
+            if (Object.keys(foundItems).length > 0) {
+                const lootMessage = 'You found: ' + Object.entries(foundItems).map(([item, amount]) => `${amount} ${item.replace(/([A-Z])/g, ' $1').toLowerCase()}`).join(', ') + '.';
+                addMessage(lootMessage, 'gain');
+            } else {
+                addMessage('You found nothing useful this time.');
+            }
+            
+            if (Math.random() < 0.2) {
+                const oldHealth = gameState.health;
+                const damage = Math.floor(Math.random() * 5) + 1;
+                gameState.health = Math.max(0, gameState.health - damage);
+                const actualDamage = oldHealth - gameState.health;
+                addMessage(`WARNING: You cut yourself on rusty metal, losing ${actualDamage} health.`, 'warning');
+                console.log(`[HEALTH CHANGE] Health decreased by ${actualDamage} from Search Trailer injury. Current health: ${gameState.health}`);
+            }
+
+            if (!gameState.hasSearchedTrailer) {
+                gameState.hasSearchedTrailer = true;
+            }
+        }
+
+        function repairTrailer() {
+            if (gameState.trailerSecurity >= 100) {
+                addMessage('Your trailer is as secure as it can get.', 'default');
+                return;
+            }
+            const staminaCost = 5;
+            if (gameState.stamina < staminaCost) {
+                addMessage(`You are too tired to fortify. You need ${staminaCost} stamina.`, 'warning');
+                return;
+            }
+            
+            let costs = {};
+            if (gameState.trailerSecurity < 25) costs = { scrapMetal: 3, rags: 1 };
+            else if (gameState.trailerSecurity < 50) costs = { scrapMetal: 4, rags: 1, wood: 1 };
+            else if (gameState.trailerSecurity < 75) costs = { scrapMetal: 5, rags: 2, wood: 2, components: 1 };
+            else costs = { scrapMetal: 10, rags: 5, wood: 5, components: 3 };
+
+            const missing = Object.entries(costs)
+                .filter(([item, amount]) => gameState.resources[item] < amount)
+                .map(([item, amount]) => `${amount - gameState.resources[item]} ${item.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+
+            if (missing.length > 0) {
+                addMessage(`You need more resources: ${missing.join(', ')}.`, 'warning');
+                return;
+            }
+
+            Object.entries(costs).forEach(([item, amount]) => loseResource(item, amount));
+            addMessage('You fortify a section of your trailer...', 'atmospheric');
+            passTime(3);
+            gameState.stamina = Math.max(0, gameState.stamina - staminaCost);
+            gameState.trailerSecurity = Math.min(100, gameState.trailerSecurity + 5);
+            addMessage(`Security increased by 5.`, 'gain');
+        }
+
+        function explorePark() {
+            addMessage('You step outside, looking out into the overgrown expanse of Thornyvale.', 'atmospheric');
+            gameState.currentLocation = 'thornyvale';
+            gameState.currentParkView = 'overview';
+        }
+
+        function surveySurrounding() {
+            const staminaCost = 5;
+            if (gameState.stamina < staminaCost) {
+                addMessage(`You are too tired to survey. You need ${staminaCost} stamina.`, 'warning');
+                return;
+            }
+            addMessage('You survey the immediate surroundings, getting your bearings...', 'atmospheric');
+            passTime(2);
+            gameState.stamina = Math.max(0, gameState.stamina - staminaCost);
+            gameState.hasSurveyedPark = true;
+            gameState.thornyvaleMap.northSection.discovered = true;
+            gameState.thornyvaleMap.southSection.discovered = true;
+            gameState.thornyvaleMap.communityCenter.discovered = true; 
+            addMessage('You\'ve gained a better understanding of Thornyvale. New sections are now visible.', 'new-day');
+        }
+
+        // --- Restored Exploration Functions ---
+
+        function returnToTrailer() {
+            addMessage('You head back to the relative safety of your trailer.');
+            gameState.currentLocation = 'trailer';
+            gameState.currentParkView = 'overview';
+        }
+
+        function returnToThornyvaleHub() {
+            addMessage('You step back out into the main Thornyvale area.');
+            gameState.currentParkView = 'overview';
+        }
+
+        function exploreThornyvaleSection(sectionName) {
+            const section = gameState.thornyvaleMap[sectionName];
+            if (!section) {
+                console.error('Invalid section name:', sectionName);
+                return;
+            }
+            const staminaCost = 5;
+            if (gameState.stamina < staminaCost) {
+                addMessage(`You are too tired to explore this area. You need at least ${staminaCost} stamina.`, 'warning');
+                return;
+            }
+
+            if (sectionName === 'northSection' && gameState.resources.boltCutters <= 0) {
+                addMessage('The path to the North Section is blocked by a heavy fence and a chained gate. You need something strong to cut through it.', 'warning');
+                return;
+            } else if (sectionName === 'southSection' && gameState.resources.machete <= 0) {
+                addMessage('The path to the South Section is too overgrown to enter. The dense foliage blocks your way.', 'warning');
+                return;
+            }
+            
+            passTime(4);
+            gameState.stamina = Math.max(0, gameState.stamina - staminaCost);
+            gameState.currentParkView = sectionName;
+
+            // First time entry messages & discoveries
+            if (!section.firstEntryDone) {
+                 if (sectionName === 'communityCenter') {
+                    gameState.thornyvaleMap.communityCenter.subLocations.office.discovered = true;
+                    gameState.thornyvaleMap.communityCenter.subLocations.kitchen.discovered = true;
+                    gameState.thornyvaleMap.communityCenter.subLocations.gym.discovered = true;
+                    gameState.thornyvaleMap.communityCenter.subLocations.dilapidatedshack.discovered = true;
+                    addMessage('You step inside the Community Center. It\'s quiet... too quiet. You notice several distinct areas you could search.', 'new-day');
+                } else if (sectionName === 'northSection') {
+                    addMessage('You use the bolt cutters to snap the rusty chain. The North Section is now accessible.', 'gain');
+                    gameState.thornyvaleMap.northSection.subLocations.hoardershaven.discovered = true;
+                    gameState.thornyvaleMap.northSection.subLocations.overgrownoasis.discovered = true;
+                    gameState.thornyvaleMap.northSection.subLocations.burnedoutshell.discovered = true;
+                    addMessage('You push through thick undergrowth and find several new locations.', 'new-day');
+                } else if (sectionName === 'southSection') {
+                    addMessage('You use your machete to hack through the thick overgrowth. The South Section is now accessible.', 'gain');
+                    gameState.thornyvaleMap.southSection.subLocations.preppershideout.discovered = true;
+                    gameState.thornyvaleMap.southSection.subLocations.makeshiftworkshop.discovered = true;
+                    gameState.thornyvaleMap.southSection.subLocations.partytrailer.discovered = true;
+                    addMessage('You carve a path into the South Section, revealing new trailers to explore.', 'new-day');
+                }
+                section.firstEntryDone = true;
+            } else {
+                 addMessage(`You re-enter the ${getDisplayLocationName(sectionName)}.`);
+            }
+
+            if (Math.random() < section.zombieChance) {
+                const oldHealth = gameState.health;
+                const damageTaken = Math.floor(Math.random() * 10) + 5;
+                gameState.health = Math.max(0, gameState.health - damageTaken);
+                const actualDamage = oldHealth - gameState.health;
+                addMessage(`DANGER! You encountered a shambling zombie! You took ${actualDamage} damage fighting it off.`, 'warning');
+            }
+        }
+
+        function scavengeLocation(subLocationName) {
+            const parentSectionName = subLocationName.startsWith('communityCenter') ? 'communityCenter' : (subLocationName.startsWith('northSection') ? 'northSection' : 'southSection');
+            const subLocationKey = subLocationName.replace(parentSectionName, '').toLowerCase();
+            const subLocation = gameState.thornyvaleMap[parentSectionName].subLocations[subLocationKey];
+
+            if (!subLocation) {
+                console.error(`Sub-location ${subLocationName} not found.`);
+                return;
+            }
+
+            const staminaCost = 5;
+            if (gameState.stamina < staminaCost) {
+                addMessage(`You are too tired to scavenge here. You need at least ${staminaCost} stamina.`, 'warning');
+                return;
+            }
+
+            if (subLocationName === 'communityCenterdilapidatedshack' && gameState.resources.rustyKey <= 0) {
+                addMessage('The door to the Dilapidated Shack is locked tight. You need a rusty key.', 'warning');
+                return;
+            }
+            
+            addMessage(`You begin scavenging the ${getDisplayLocationName(subLocationName)}...`);
+            passTime(2);
+            gameState.stamina = Math.max(0, gameState.stamina - staminaCost);
+            
+            const foundItemsList = {};
+
+            // --- RESTORED & MODIFIED LOOT LOGIC ---
+            if (subLocationName === 'communityCenterOffice') {
+                const amountScrap = Math.floor(Math.random() * 3); // 0-2
+                const amountComponents = Math.floor(Math.random() * 2); // 0-1
+                const amountRustyKey = (!gameState.hasFoundRustyKey && Math.random() < 0.25) ? 1 : 0; // 25% chance, only once
+
+                if (amountScrap > 0) { addToInventory('scrapMetal', amountScrap); foundItemsList.scrapMetal = (foundItemsList.scrapMetal || 0) + amountScrap; }
+                if (amountComponents > 0) { addToInventory('components', amountComponents); foundItemsList.components = (foundItemsList.components || 0) + amountComponents; }
+                if (amountRustyKey > 0) { addToInventory('rustyKey', amountRustyKey); foundItemsList.rustyKey = (foundItemsList.rustyKey || 0) + amountRustyKey; }
+            } else if (subLocationName === 'communityCenterKitchen') {
+                const amountRottenFood = Math.floor(Math.random() * 3); // 0-2
+                const amountDirtyWater = Math.floor(Math.random() * 3); // 0-2
+                if (amountRottenFood > 0) { addToInventory('rottenFood', amountRottenFood); foundItemsList.rottenFood = (foundItemsList.rottenFood || 0) + amountRottenFood; }
+                if (amountDirtyWater > 0) { addToInventory('dirtyWater', amountDirtyWater); foundItemsList.dirtyWater = (foundItemsList.dirtyWater || 0) + amountDirtyWater; }
+            } else if (subLocationName === 'communityCenterGym') {
+                const amountRags = Math.floor(Math.random() * 4); // 0-3
+                const amountEnergyBar = (Math.random() < 0.25) ? 1 : 0; // 25% chance
+                const amountRearBikeTire = (!gameState.hasFoundRearBikeTire && Math.random() < 0.10) ? 1 : 0; // 10% chance, only once
+
+                if (amountRags > 0) { addToInventory('rags', amountRags); foundItemsList.rags = (foundItemsList.rags || 0) + amountRags; }
+                if (amountEnergyBar > 0) { addToInventory('energyBar', amountEnergyBar); foundItemsList.energyBar = (foundItemsList.energyBar || 0) + amountEnergyBar; }
+                if (amountRearBikeTire > 0) { addToInventory('rearBikeTire', amountRearBikeTire); foundItemsList.rearBikeTire = (foundItemsList.rearBikeTire || 0) + amountRearBikeTire; }
+            } else if (subLocationName === 'communityCenterdilapidatedshack') {
+                const amountWood = Math.floor(Math.random() * 2); // 0-1 wood
+                const amountScrap = Math.floor(Math.random() * 2); // 0-1 scrap
+                const amountBoltCutters = (!gameState.hasFoundBoltCutters && Math.random() < 0.20) ? 1 : 0; // 20% chance, only once
+
+                if (amountWood > 0) { addToInventory('wood', amountWood); foundItemsList.wood = (foundItemsList.wood || 0) + amountWood; }
+                if (amountScrap > 0) { addToInventory('scrapMetal', amountScrap); foundItemsList.scrapMetal = (foundItemsList.scrapMetal || 0) + amountScrap; }
+                if (amountBoltCutters > 0) { addToInventory('boltCutters', amountBoltCutters); foundItemsList.boltCutters = (foundItemsList.boltCutters || 0) + amountBoltCutters; }
+            } else if (subLocationName === 'northSectionhoardershaven') {
+                const amountComponents = Math.floor(Math.random() * 3) + 1; // 1-3 components
+                const amountRags = Math.floor(Math.random() * 3) + 1; // 1-3 rags
+                const amountEnergyBar = (Math.random() < 0.15) ? 1 : 0; // 15% chance
+                const amountFrontBikeTire = (!gameState.hasFoundFrontBikeTire && Math.random() < 0.05) ? 1 : 0; // 5% chance, only once
+
+                if (amountComponents > 0) { addToInventory('components', amountComponents); foundItemsList.components = (foundItemsList.components || 0) + amountComponents; }
+                if (amountRags > 0) { addToInventory('rags', amountRags); foundItemsList.rags = (foundItemsList.rags || 0) + amountRags; }
+                if (amountEnergyBar > 0) { addToInventory('energyBar', amountEnergyBar); foundItemsList.energyBar = (foundItemsList.energyBar || 0) + amountEnergyBar; }
+                if (amountFrontBikeTire > 0) { addToInventory('frontBikeTire', amountFrontBikeTire); foundItemsList.frontBikeTire = (foundItemsList.frontBikeTire || 0) + amountFrontBikeTire; }
+            } else if (subLocationName === 'northSectionburnedoutshell') {
+                const amountWood = Math.floor(Math.random() * 3) + 1; // 1-3 wood
+                const amountScrap = Math.floor(Math.random() * 3); // 0-2 scrap
+                const amountCharredDocument = (Math.random() < 0.1) ? 1 : 0; // 10% chance
+
+                if (amountWood > 0) { addToInventory('wood', amountWood); foundItemsList.wood = (foundItemsList.wood || 0) + amountWood; }
+                if (amountScrap > 0) { addToInventory('scrapMetal', amountScrap); foundItemsList.scrapMetal = (foundItemsList.scrapMetal || 0) + amountScrap; }
+                if (amountCharredDocument > 0) { addToInventory('charredDocument', amountCharredDocument);  foundItemsList.charredDocument = (foundItemsList.charredDocument || 0) + amountCharredDocument; }
+            } else if (subLocationName === 'northSectionovergrownoasis') {
+                const amountDirtyWater = Math.floor(Math.random() * 4); // 0-3 dirty water
+                const amountRottenFood = Math.floor(Math.random() * 3); // 0-2 rotten food
+                const amountMachete = (!gameState.hasFoundMachete && Math.random() < 0.20) ? 1 : 0; // 20% chance for machete, only once
+
+                if (amountDirtyWater > 0) { addToInventory('dirtyWater', amountDirtyWater); foundItemsList.dirtyWater = (foundItemsList.dirtyWater || 0) + amountDirtyWater; }
+                if (amountRottenFood > 0) { addToInventory('rottenFood', amountRottenFood); foundItemsList.rottenFood = (foundItemsList.rottenFood || 0) + amountRottenFood; }
+                if (amountMachete > 0) { addToInventory('machete', amountMachete); foundItemsList.machete = (foundItemsList.machete || 0) + amountMachete; }
+            } else if (subLocationName === 'southSectionpreppershideout') {
+                const amountRottenFood = Math.floor(Math.random() * 2); // 0-1
+                const amountDirtyWater = Math.floor(Math.random() * 2); // 0-1
+                const amountCleanWater = Math.floor(Math.random() * 2); // 0-1
+                const amountMRE = (Math.random() < 0.10) ? 1 : 0; // 10% chance
+                const amountFirstAidKit = (Math.random() < 0.05) ? 1 : 0; // 5% chance
+
+                if (amountRottenFood > 0) { addToInventory('rottenFood', amountRottenFood); foundItemsList.rottenFood = (foundItemsList.rottenFood || 0) + amountRottenFood; }
+                if (amountDirtyWater > 0) { addToInventory('dirtyWater', amountDirtyWater); foundItemsList.dirtyWater = (foundItemsList.dirtyWater || 0) + amountDirtyWater; }
+                if (amountCleanWater > 0) { addToInventory('cleanWater', amountCleanWater); foundItemsList.cleanWater = (foundItemsList.cleanWater || 0) + amountCleanWater; }
+                if (amountMRE > 0) { addToInventory('mre', amountMRE); foundItemsList.mre = (foundItemsList.mre || 0) + amountMRE; }
+                if (amountFirstAidKit > 0) { addToInventory('firstAidKit', amountFirstAidKit); foundItemsList.firstAidKit = (foundItemsList.firstAidKit || 0) + amountFirstAidKit; }
+            } else if (subLocationName === 'southSectionmakeshiftworkshop') {
+                const amountComponents = Math.floor(Math.random() * 4) + 1; // 1-4
+                const amountScrap = Math.floor(Math.random() * 3) + 1; // 1-3
+                const amountBikeFrame = (!gameState.hasFoundBikeFrame && Math.random() < 0.05) ? 1 : 0; // 5% chance, only once
+
+                if (amountComponents > 0) { addToInventory('components', amountComponents); foundItemsList.components = (foundItemsList.components || 0) + amountComponents; }
+                if (amountScrap > 0) { addToInventory('scrapMetal', amountScrap); foundItemsList.scrapMetal = (foundItemsList.scrapMetal || 0) + amountScrap; }
+                if (amountBikeFrame > 0) { addToInventory('bikeFrame', amountBikeFrame); foundItemsList.bikeFrame = (foundItemsList.bikeFrame || 0) + amountBikeFrame; }
+            } else if (subLocationName === 'southSectionpartytrailer') {
+                const amountCleanWater = (Math.random() < 0.2) ? 1 : 0; // 20%
+                const amountRottenFood = (Math.random() < 0.3) ? 1 : 0; // 30%
+                const amountWood = Math.floor(Math.random() * 4); // 0-3
+                const amountBottleOfBeer = (Math.random() < 0.1) ? 1 : 0; // 10%
+
+                if (amountCleanWater > 0) { addToInventory('cleanWater', amountCleanWater); foundItemsList.cleanWater = (foundItemsList.cleanWater || 0) + amountCleanWater; }
+                if (amountRottenFood > 0) { addToInventory('rottenFood', amountRottenFood); foundItemsList.rottenFood = (foundItemsList.rottenFood || 0) + amountRottenFood; }
+                if (amountWood > 0) { addToInventory('wood', amountWood); foundItemsList.wood = (foundItemsList.wood || 0) + amountWood; }
+                if (amountBottleOfBeer > 0) { addToInventory('bottleOfBeer', amountBottleOfBeer); foundItemsList.bottleOfBeer = (foundItemsList.bottleOfBeer || 0) + amountBottleOfBeer; }
+            }
+
+            // --- Message and Hazard Logic ---
+            let lootMessage = 'You found: ' + Object.entries(foundItemsList).map(([item, amount]) => `${amount} ${item.replace(/([A-Z])/g, ' $1').toLowerCase()}`).join(', ') + '.';
+            if (Object.keys(foundItemsList).length > 0) {
+                addMessage(lootMessage, 'gain');
+            } else {
+                addMessage('You found nothing useful this time.');
+            }
+
+            if (Math.random() < subLocation.zombieChance) {
+                const oldHealth = gameState.health;
+                const damageTaken = Math.floor(Math.random() * 8) + 3;
+                gameState.health = Math.max(0, gameState.health - damageTaken);
+                const actualDamage = oldHealth - gameState.health;
+                addMessage(`DANGER! A zombie was lurking inside! You took ${actualDamage} damage.`, 'warning');
+            }
+        }
+
+        // --- Simplified Crafting Functions ---
+
+        function craftCampfire() {
+            if (loseResource('wood', 2)) {
+                gameState.stamina = Math.max(0, gameState.stamina - 5);
+                gameState.hasCampfire = true;
+                addMessage('You built a crude campfire. You can now cook and boil water.', 'gain');
+            }
+        }
+        
+        function cookFood() {
+            if (loseResource('rottenFood', 2) && loseResource('wood', 1)) {
+                gameState.stamina = Math.max(0, gameState.stamina - 5);
+                addToInventory('cookedFood', 1);
+                addMessage(`You cooked the rotten food into something edible.`, 'gain');
+            }
+        }
+        
+        function boilWater() {
+             if (loseResource('dirtyWater', 2) && loseResource('wood', 1)) {
+                gameState.stamina = Math.max(0, gameState.stamina - 5);
+                addToInventory('cleanWater', 1);
+                addMessage(`You boiled the dirty water, making it safe to drink.`, 'gain');
+            }
+        }
+        
+        function craftBandages() {
+            if (loseResource('rags', 2)) {
+                gameState.stamina = Math.max(0, gameState.stamina - 5);
+                addToInventory('bandages', 1);
+                addMessage('You crafted a usable bandage from old rags.', 'gain');
+            }
+        }
+
+
+        // --- Save/Load Functions ---
+        function saveGame() {
+            try {
+                localStorage.setItem('thornyvaleSave', JSON.stringify(gameState));
+                addMessage('Game saved successfully!');
+            } catch (e) {
+                console.error('Error saving game:', e);
+                addMessage('Failed to save game.', 'warning');
+            }
+        }
+
+        function loadGame() {
+            try {
+                const savedStateJSON = localStorage.getItem('thornyvaleSave');
+                if (savedStateJSON) {
+                    const savedState = JSON.parse(savedStateJSON);
+                    // Merge saved state with a fresh state to ensure all properties exist
+                    gameState = { ...getNewGameState(), ...savedState };
+                    // Deep merge for nested objects like resources and maps
+                    gameState.resources = { ...getNewGameState().resources, ...savedState.resources };
+                    gameState.thornyvaleMap = { ...getNewGameState().thornyvaleMap, ...savedState.thornyvaleMap };
+                    // Further deep merge for sub-locations
+                    for (const sectionKey in getNewGameState().thornyvaleMap) {
+                        if (savedState.thornyvaleMap && savedState.thornyvaleMap[sectionKey]) {
+                            gameState.thornyvaleMap[sectionKey].subLocations = {
+                                ...getNewGameState().thornyvaleMap[sectionKey].subLocations,
+                                ...savedState.thornyvaleMap[sectionKey].subLocations
+                            };
+                        }
+                    }
+
+                    addMessage('Game loaded from previous save.');
+                } else {
+                    gameState = getNewGameState();
+                    addMessage('Welcome to Thornyvale: Rust and Ruin.', 'new-day');
+                    addMessage('Years after the collapse, you awaken on a stained mattress in a dilapidated trailer.', 'atmospheric');
+                    addMessage('Your first priority: examine your surroundings.', 'atmospheric');
+                }
+            } catch (e) {
+                console.error('Error loading or parsing saved game:', e);
+                addMessage('Failed to load save. Starting a new game.', 'warning');
+                gameState = getNewGameState();
+            }
+        }
+
+        // --- Event Listeners ---
+        lookAroundButton.addEventListener('click', () => performActionWithDelay(lookAroundButton, lookAround, 2000, "Surveying..."));
+        sleepButton.addEventListener('click', () => performActionWithDelay(sleepButton, sleep, 8000, "Sleeping..."));
+        searchTrailerButton.addEventListener('click', () => performActionWithDelay(searchTrailerButton, searchTrailer, 4000, "Searching..."));
+        repairTrailerButton.addEventListener('click', () => performActionWithDelay(repairTrailerButton, repairTrailer, 5000, "Fortifying..."));
+        saveGameButton.addEventListener('click', () => performActionWithDelay(saveGameButton, saveGame, 1000, "Saving..."));
+        
+        // Park Exploration Listeners
+        exploreParkButton.addEventListener('click', () => performActionWithDelay(exploreParkButton, explorePark, 1000, "Stepping out..."));
+        surveySurroundingButton.addEventListener('click', () => performActionWithDelay(surveySurroundingButton, surveySurrounding, 5000, "Surveying..."));
+        exploreNorthSectionButton.addEventListener('click', () => performActionWithDelay(exploreNorthSectionButton, () => exploreThornyvaleSection('northSection'), 6000, "Exploring...")); 
+        exploreSouthSectionButton.addEventListener('click', () => performActionWithDelay(exploreSouthSectionButton, () => exploreThornyvaleSection('southSection'), 6000, "Exploring...")); 
+        exploreCommunityCenterButton.addEventListener('click', () => performActionWithDelay(exploreCommunityCenterButton, () => exploreThornyvaleSection('communityCenter'), 6000, "Exploring...")); 
+        returnToTrailerButton.addEventListener('click', () => performActionWithDelay(returnToTrailerButton, returnToTrailer, 1000, "Returning...")); 
+        returnToThornyvaleHubButton.addEventListener('click', () => performActionWithDelay(returnToThornyvaleHubButton, returnToThornyvaleHub, 1000, "Returning..."));
+
+        // Scavenging Listeners
+        exploreCommunityCenterOfficeButton.addEventListener('click', () => performActionWithDelay(exploreCommunityCenterOfficeButton, () => scavengeLocation('communityCenterOffice'), 4000, "Scavenging...")); 
+        exploreCommunityCenterKitchenButton.addEventListener('click', () => performActionWithDelay(exploreCommunityCenterKitchenButton, () => scavengeLocation('communityCenterKitchen'), 4000, "Scavenging...")); 
+        exploreCommunityCenterGymButton.addEventListener('click', () => performActionWithDelay(exploreCommunityCenterGymButton, () => scavengeLocation('communityCenterGym'), 4000, "Scavenging...")); 
+        exploreCommunityCenterDilapidatedShackButton.addEventListener('click', () => performActionWithDelay(exploreCommunityCenterDilapidatedShackButton, () => scavengeLocation('communityCenterdilapidatedshack'), 4000, "Scavenging...")); 
+        exploreHoardersHavenButton.addEventListener('click', () => performActionWithDelay(exploreHoardersHavenButton, () => scavengeLocation('northSectionhoardershaven'), 4000, "Scavenging...")); 
+        exploreOvergrownOasisButton.addEventListener('click', () => performActionWithDelay(exploreOvergrownOasisButton, () => scavengeLocation('northSectionovergrownoasis'), 4000, "Scavenging...")); 
+        exploreBurnedOutShellButton.addEventListener('click', () => performActionWithDelay(exploreBurnedOutShellButton, () => scavengeLocation('northSectionburnedoutshell'), 4000, "Scavenging...")); 
+        explorePreppersHideoutButton.addEventListener('click', () => performActionWithDelay(explorePreppersHideoutButton, () => scavengeLocation('southSectionpreppershideout'), 4000, "Scavenging...")); 
+        exploreMakeshiftWorkshopButton.addEventListener('click', () => performActionWithDelay(exploreMakeshiftWorkshopButton, () => scavengeLocation('southSectionmakeshiftworkshop'), 4000, "Scavenging...")); 
+        explorePartyTrailerButton.addEventListener('click', () => performActionWithDelay(explorePartyTrailerButton, () => scavengeLocation('southSectionpartytrailer'), 4000, "Scavenging...")); 
+
+        // Crafting listeners
+        craftCampfireButton.addEventListener('click', () => performActionWithDelay(craftCampfireButton, craftCampfire, 5000, "Building..."));
+        cookFoodButton.addEventListener('click', () => performActionWithDelay(cookFoodButton, cookFood, 6000, "Cooking..."));
+        boilWaterButton.addEventListener('click', () => performActionWithDelay(boilWaterButton, boilWater, 6000, "Boiling..."));
+        craftBandagesButton.addEventListener('click', () => performActionWithDelay(craftBandagesButton, craftBandages, 3000, "Crafting..."));
+
+        // --- Initial Game Setup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if(gameLogContent) gameLogContent.innerHTML = '';
+            loadGame();
+            updateUI();
+        });
+    </script>
+</body>
+</html>
