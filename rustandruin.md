@@ -210,7 +210,9 @@ Working
 			***Submitted for fix
 				...The "Search Lot 27" function seems to be not working.  It displayed log messages, but then doesn't stop saying "Searching...".  The button remains locked out and no items are found.  Please fix.
 
-The "Bottle of Beer" is a consumable item, do not limit how many times it can be found.  It should be treated similar to other "Supplies" items.
+...Add a new item, "Rear Bike Tire". This item can only ever be found once, and is found in the Gym, with a 10% chance to drop. 
+
+...The "Bottle of Beer" is a consumable item, do not limit how many times it can be found.  It should be treated similar to other "Supplies" items.
 
 ...Update the log messages for the "Search Lot 27", add more messages that can be used, instead of just "You rummage through the debris and forgotten corners of your trailer..."
 
