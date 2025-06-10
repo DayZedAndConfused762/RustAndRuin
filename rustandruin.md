@@ -127,6 +127,90 @@ Items:
 	 > Mountain Bike
 
 
+Trailer Park Locations
+Lot 27 (Your Trailer):
+
+Scrap Metal: 0-3
+Rags: 0-2
+Dirty Water: 0-2
+Rotten Food: 0-1
+Wood: 0-1
+Office (Community Center):
+
+Scrap Metal: 0-2
+Components: 0-1
+Rusty Key: 25% chance (one-time find)
+Kitchen (Community Center):
+
+Rotten Food: 0-2
+Dirty Water: 0-2
+Gym (Community Center):
+
+Rags: 0-3
+Energy Bar: 25% chance
+Rear Bike Tire: 25% chance (one-time find)
+Dilapidated Shack (Community Center):
+
+Wood: 0-1
+Scrap Metal: 0-1
+Bolt Cutters: 25% chance (one-time find)
+Hoarder's Haven (North Section):
+
+Components: 1-3
+Rags: 1-3
+Energy Bar: 15% chance
+Front Bike Tire: 25% chance (one-time find)
+Burned-Out Shell (North Section):
+
+Wood: 1-3
+Scrap Metal: 0-2
+Charred Document: 10% chance
+Overgrown Oasis (North Section):
+
+Dirty Water: 0-3
+Rotten Food: 0-2
+Machete: 25% chance (one-time find)
+Prepper's Hideout (South Section):
+
+Rotten Food: 0-1
+Dirty Water: 0-1
+Clean Water: 0-1
+MRE: 10% chance
+First Aid Kit: 5% chance
+Makeshift Workshop (South Section):
+
+Components: 1-4
+Scrap Metal: 1-3
+Bike Frame: 25% chance (one-time find)
+Party Trailer (South Section):
+
+Clean Water: 20% chance
+Rotten Food: 30% chance
+Wood: 0-3
+Bottle of Beer: 10% chance
+Route 17 Locations
+Highway:
+
+Scrap Metal: 2-6
+Rags: 0-2
+Overturned RV:
+
+Bottle of Beer: 25% chance
+MRE: 25% chance
+First Aid Kit: 25% chance
+Energy Bar: 25% chance
+Binoculars: 25% chance (one-time find)
+Starlite Motel: (Currently has placeholder loot)
+
+Has a chance to find common items.
+Pine Valley Stripmall: (Currently has placeholder loot)
+
+Has a chance to find common items.
+Old Farmstead: (Currently has placeholder loot)
+
+Has a chance to find common items.
+
+
 -------------------------------------------------------
 To implement and test
 -------------------------------------------------------
