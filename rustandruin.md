@@ -138,11 +138,7 @@ Re do the park exploration feature:
 
 	 >Thornyvale
 
-The Overturned RV
-Description: "A once-luxurious RV lies on its side, wheels spun uselessly. Its interior is a chaotic mess of overturned furniture and scattered personal effects, hinting at a hasty, desperate escape that ended here."
-Flavor/Theme: Lost dreams, sudden tragedy, the fragility of a comfortable life.
-Potential Unique Loot: Higher chance of luxury consumables (e.g., unopened alcohol, gourmet canned goods, rarely a compact generator), vehicle parts, and potentially a camping axe or first-aid kit.
-Hazards: Moderate zombie chance (potential trapped walkers inside). Small chance of structural collapse if not approached carefully, leading to injury.
+
 
 
 
@@ -199,28 +195,42 @@ BALANCING
 Working
 -------------------------------------------------------
 
-***Create a new item: "Bottle of Beer".  This item will be listed in the "Supplies" category.  It can be consumed to lower thirst by thirst and increase stamina by 20.
-	***Implement a new location in the "South Section" of the park;
-		The Party Trailer
-			Description: "The interior of this trailer is a chaotic testament to pre-apocalypse revelry: overturned beer cans, deflated balloons, and glitter cover every surface. The lingering scent of stale alcohol and cheap perfume hangs in the air, a stark contrast to the silence outside."
-			Flavor/Theme: Escapism, fleeting joy, the abrupt end of normalcy.
-			Potential Unique Loot: 0-1 clean water, 0-2 rotten food, 0-2 wood, 10% chance to find "Bottle of Beer"
-			Hazards: 20% zombie chance (attracted by noise or the lingering scents), 2-7 damage. 25% chance of injury from broken glass underfoot, 1-3 damage.
-		***@@@[08:39:13 AM] [GLOBAL] TypeError: Cannot read properties of null (reading 'addEventListener') at blob:https://5yjxa7ep12nlnj2vg81f7t9x4t93uv46rb5ja42lby01l92lqh-h766678603.scf.usercontent.goog/65c62b7e-862e-4c2c-aed8-1a46644c2c04:3095:35@@@***
-			***Submitted for fix
-				...The "Search Lot 27" function seems to be not working.  It displayed log messages, but then doesn't stop saying "Searching...".  The button remains locked out and no items are found.  Please fix.
+	...Add a new location to Route 17;
+		The Overturned RV
+		Description: "A once-luxurious RV lies on its side, wheels spun uselessly. Its interior is a chaotic mess of overturned furniture and scattered personal effects, hinting at a hasty, desperate escape that ended 		here."
+		Flavor/Theme: Lost dreams, sudden tragedy, the fragility of a comfortable life.
+		Potential Unique Loot: Higher chance of luxury consumables (e.g., unopened alcohol, MRE, first aid kit, energy bar.
+		Hazards: 10% zombie chance (potential trapped walkers inside 7-15 damage). 15% chance of structural collapse, 2-6 damage.
 
-...Add a new item, "Rear Bike Tire". This item can only ever be found once, and is found in the Gym, with a 10% chance to drop. 
+Add a new item: Binoculars, this will have a 25% chance to drop from The Overturned RV.  The player can only find one of these, and it's a Gear item.
 
-...The "Bottle of Beer" is a consumable item, do not limit how many times it can be found.  It should be treated similar to other "Supplies" items.
+Add a new option to Route 17; "Survey Highway".  This option will only work if the player has the Binoculars.  It has a 50% chance of revealing a new location: "The Starlite Motel", "Pine Valley Stripmall", "Old Farmstead".  The location revealed first is random, and the other locations can be revealed with more surveys.  
 
-...Update the log messages for the "Search Lot 27", add more messages that can be used, instead of just "You rummage through the debris and forgotten corners of your trailer..."
 
-...The items in the "Supplies" category are not showing correctly, there is no text in the buttons.
+, rarely a compact generator), vehicle parts, and potentially a camping axe or first-aid kit.
 
 -------------------------------------------------------
 Completed and QA'd
 -------------------------------------------------------
+
+	***Create a new item: "Bottle of Beer".  This item will be listed in the "Supplies" category.  It can be consumed to lower thirst by thirst and increase stamina by 20.
+		***Implement a new location in the "South Section" of the park;
+			The Party Trailer
+				Description: "The interior of this trailer is a chaotic testament to pre-apocalypse revelry: overturned beer cans, deflated balloons, and glitter cover every surface. The lingering scent of stale alcohol and cheap perfume hangs in the air, a stark contrast to the silence outside."
+				Flavor/Theme: Escapism, fleeting joy, the abrupt end of normalcy.
+				Potential Unique Loot: 0-1 clean water, 0-2 rotten food, 0-2 wood, 10% chance to find "Bottle of Beer"
+				Hazards: 20% zombie chance (attracted by noise or the lingering scents), 2-7 damage. 25% chance of injury from broken glass underfoot, 1-3 damage.
+			***@@@[08:39:13 AM] [GLOBAL] TypeError: Cannot read properties of null (reading 'addEventListener') at blob:https://5yjxa7ep12nlnj2vg81f7t9x4t93uv46rb5ja42lby01l92lqh-h766678603.scf.usercontent.goog/65c62b7e-862e-4c2c-aed8-1a46644c2c04:3095:35@@@***
+				***Submitted for fix
+					...The "Search Lot 27" function seems to be not working.  It displayed log messages, but then doesn't stop saying "Searching...".  The button remains locked out and no items are found.  Please fix.
+	
+	...Add a new item, "Rear Bike Tire". This item can only ever be found once, and is found in the Gym, with a 10% chance to drop. 
+	
+	...The "Bottle of Beer" is a consumable item, do not limit how many times it can be found.  It should be treated similar to other "Supplies" items.
+	
+	...Update the log messages for the "Search Lot 27", add more messages that can be used, instead of just "You rummage through the debris and forgotten corners of your trailer..."
+	
+	...The items in the "Supplies" category are not showing correctly, there is no text in the buttons.
 
 	...Let's implement a new searchable location in the South Section area:
 				The Prepper's Hideout
