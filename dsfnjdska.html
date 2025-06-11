@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thornyvale: Rust and Ruin</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header Section -->
+        <header class="game-header">
+            <div class="header-content">
+                <h1 class="game-title">THORNYVALE: RUST AND RUIN</h1>
+                <div class="game-stats">
+                    <span class="day-counter">Day <span id="currentDay">1</span></span>
+                    <span class="time-display" id="currentTime">Dawn</span>
+                    <span class="weather-display" id="currentWeather">Overcast</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="game-main">
+            <!-- Resource Panel -->
+            <section class="resource-panel">
+                <h3>═══ RESOURCES ═══</h3>
+                <div class="resource-grid">
+                    <div class="resource-item">
+                        <span class="resource-label">Food:</span>
+                        <span class="resource-value" id="food">5</span>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-label">Water:</span>
+                        <span class="resource-value" id="water">3</span>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-label">Wood:</span>
+                        <span class="resource-value" id="wood">2</span>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-label">Metal:</span>
+                        <span class="resource-value" id="metal">0</span>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-label">Tools:</span>
+                        <span class="resource-value" id="tools">1</span>
+                    </div>
+                    <div class="resource-item health">
+                        <span class="resource-label">Health:</span>
+                        <span class="resource-value" id="health">80</span>%
+                    </div>
+                    <div class="resource-item energy">
+                        <span class="resource-label">Energy:</span>
+                        <span class="resource-value" id="energy">100</span>%
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Story Area -->
+            <section class="story-panel">
+                <h3>═══ SITUATION ═══</h3>
+                <div class="story-text" id="storyText">
+                    You wake up in your cramped, moldy trailer as another grey dawn breaks over Thornyvale. The air is thick with the scent of decay and overgrowth. Vines creep through cracks in the walls, and you can hear the distant moaning of thorn-walkers moving through the undergrowth. Your supplies are running dangerously low, and you need to make some tough decisions about how to survive another day in this overgrown nightmare.
+                </div>
+            </section>
+
+            <!-- Action Panel -->
+            <section class="action-panel">
+                <h3>═══ ACTIONS ═══</h3>
+                <div class="action-buttons" id="actionButtons">
+                    <button class="action-btn" data-action="scavengeFood">
+                        <div class="action-title">Scavenge Food</div>
+                        <div class="action-desc">Search nearby trailers for edible supplies</div>
+                        <div class="action-cost">Energy: -20 | Time: 2hrs</div>
+                    </button>
+                    <button class="action-btn" data-action="findWater">
+                        <div class="action-title">Find Water</div>
+                        <div class="action-desc">Look for clean water sources</div>
+                        <div class="action-cost">Energy: -15 | Time: 1hr</div>
+                    </button>
+                    <button class="action-btn" data-action="gatherWood">
+                        <div class="action-title">Gather Wood</div>
+                        <div class="action-desc">Collect fallen branches and lumber</div>
+                        <div class="action-cost">Energy: -25 | Time: 3hrs</div>
+                    </button>
+                    <button class="action-btn" data-action="rest">
+                        <div class="action-title">Rest</div>
+                        <div class="action-desc">Sleep to restore energy and health</div>
+                        <div class="action-cost">Time: 4hrs</div>
+                    </button>
+                </div>
+                <div class="action-status" id="actionStatus"></div>
+            </section>
+
+            <!-- Buildings Panel -->
+            <section class="buildings-panel">
+                <h3>═══ BASE STATUS ═══</h3>
+                <div class="building-item">
+                    <span class="building-name">Main Trailer:</span>
+                    <span class="building-status" id="trailerStatus">Dilapidated</span>
+                </div>
+                <div class="building-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="trailerProgress" style="width: 15%"></div>
+                    </div>
+                    <span class="progress-text">15% Repaired</span>
+                </div>
+            </section>
+
+            <!-- Event Log -->
+            <section class="log-panel">
+                <h3>═══ EVENT LOG ═══</h3>
+                <div class="log-content" id="eventLog">
+                    <div class="log-entry">Game started. Welcome to Thornyvale.</div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Game Controls -->
+        <footer class="game-controls">
+            <button class="control-btn" id="saveGame">Save Game</button>
+            <button class="control-btn" id="loadGame">Load Game</button>
+            <div class="auto-save-status" id="autoSaveStatus">Auto-saving...</div>
+        </footer>
+    </div>
+
+    <script>
+      // Thornyvale: Rust and Ruin - Game Logic
+document.addEventListener('DOMContentLoaded', () => {
+    // Game State
+    const gameState = {
+        // Time tracking
+        day: 1,
+        hour: 6, // Start at 6 AM
+        timeOfDay: 'Dawn',
+        weather: 'Overcast',
+        weatherEffects: {},
+        
+        // Resources
+        resources: {
+            food: 5,
+            water: 3,
+            wood: 2,
+            metal: 0,
+            tools: 1,
+            health: 80,
+            energy: 100
+        },
+        
+        // Progression
+        trailerRepair: 15, // Percentage
+        phase: 1,
+        
+        // Action status
+        currentAction: null,
+        actionTimeRemaining: 0,
+        
+        // Flag for active event
+        activeEvent: null,
+        
+        // Game status
+        running: true,
+        lastUpdated: Date.now(),
+        lastSave: 0,
+        gameStartTime: Date.now(),
+        tickCounter: 0
+    };
+    
+    // Game Configuration
+    const gameConfig = {
+        // Resource decay rates per tick (reduced for better gameplay)
+        decayRates: {
+            food: 0.02,
+            water: 0.03,
+            energy: 0.1
+        },
+        
+        // Base action configurations
+        actions: {
+            scavengeFood: {
+                name: "Scavenge Food",
+                description: "Search nearby trailers and overgrowth for edible supplies",
+                cost: {energy: 20, time: 2},
+                successRate: 0.7,
+                rewards: {food: [1, 3]}
+            },
+            findWater: {
+                name: "Find Water",
+                description: "Look for clean water sources or containers",
+                cost: {energy: 15, time: 1},
+                successRate: 0.6,
+                rewards: {water: [1, 2]}
+            },
+            gatherWood: {
+                name: "Gather Wood",
+                description: "Collect fallen branches and salvageable lumber",
+                cost: {energy: 25, time: 3},
+                successRate: 0.8,
+                rewards: {wood: [2, 4]}
+            },
+            rest: {
+                name: "Rest",
+                description: "Sleep to restore energy and health",
+                cost: {time: 4},
+                successRate: 1.0,
+                rewards: {energy: [30, 50], health: [5, 15]}
+            }
+        },
+        
+        // Event configurations (increased chances for better gameplay)
+        events: [
+            {
+                name: "Thorn-Walker Encounter",
+                description: "A shambling figure covered in thorny vines stumbles near your trailer. Its eyes glow with an eerie green light.",
+                chance: 0.008, // Per tick chance
+                choices: [
+                    {
+                        text: "Hide and wait for it to pass", 
+                        outcome: "You remain perfectly still as the thorn-walker shambles past. The vines covering its body seem to twitch and search, but it eventually moves on.",
+                        effect: {}
+                    },
+                    {
+                        text: "Try to fight it off", 
+                        outcome: "You grab your makeshift weapon and confront the thorn-walker. The fight is brutal, and though you prevail, you're left with scratches that burn with an unnatural heat.",
+                        effect: {health: -15, metal: 1}
+                    }
+                ],
+                minDay: 1
+            },
+            {
+                name: "Strange Whispers",
+                description: "You hear faint whispers on the wind, speaking of the time before the outbreak. The voices speak of better days, when Thornyvale had families and laughter...",
+                chance: 0.005,
+                effect: {energy: 5}, // Small comfort from memories
+                minDay: 2
+            },
+            {
+                name: "Rain Storm",
+                description: "Dark clouds gather and rain begins to fall, filling containers with fresh water. The sound is oddly soothing in this desolate place.",
+                chance: 0.012,
+                effect: {water: 2},
+                minDay: 1
+            },
+            {
+                name: "Unusual Plant Growth",
+                description: "A patch of strange, luminescent mushrooms has sprouted near your trailer overnight. They pulse with an otherworldly glow.",
+                chance: 0.006,
+                choices: [
+                    {
+                        text: "Harvest them carefully", 
+                        outcome: "You carefully collect some of the mushrooms. They might be useful, but handling them makes you feel slightly dizzy.",
+                        effect: {food: 2, health: -5}
+                    },
+                    {
+                        text: "Destroy them", 
+                        outcome: "You destroy the mushrooms, burning them to be safe. The smoke has an odd sweet smell that makes your head clear.",
+                        effect: {energy: 10}
+                    }
+                ],
+                minDay: 3
+            },
+            {
+                name: "Scavenger's Find",
+                description: "While moving around your trailer, you spot something metallic glinting in the overgrowth. It might be useful salvage.",
+                chance: 0.010,
+                effect: {metal: 1, wood: 1},
+                minDay: 2
+            },
+            {
+                name: "Contaminated Supply",
+                description: "You discover some old canned food, but the container is dented and the contents smell questionable.",
+                chance: 0.007,
+                choices: [
+                    {
+                        text: "Risk eating it anyway", 
+                        outcome: "The food tastes terrible and makes you sick, but it fills your stomach.",
+                        effect: {food: 3, health: -10}
+                    },
+                    {
+                        text: "Throw it away", 
+                        outcome: "Better safe than sorry. You discard the questionable food.",
+                        effect: {}
+                    }
+                ],
+                minDay: 1
+            }
+        ],
+        
+        // Time configurations
+        timeProgression: {
+            tickInterval: 2000, // 2 seconds per tick in real time
+            hoursPerDay: 24,
+            mealTimes: [7, 12, 18], // Breakfast, lunch, dinner hours
+            drinkTimes: [7, 12, 15, 18, 21] // Water consumption times
+        },
+        
+        // Weather chances (0-1)
+        weatherChances: {
+            clear: 0.3,
+            overcast: 0.4,
+            rainy: 0.2,
+            stormy: 0.1
+        }
+    };
+    
+    // DOM Elements
+    const elements = {
+        // Resource displays
+        food: document.getElementById('food'),
+        water: document.getElementById('water'),
+        wood: document.getElementById('wood'),
+        metal: document.getElementById('metal'),
+        tools: document.getElementById('tools'),
+        health: document.getElementById('health'),
+        energy: document.getElementById('energy'),
+        
+        // Game status displays
+        currentDay: document.getElementById('currentDay'),
+        currentTime: document.getElementById('currentTime'),
+        currentWeather: document.getElementById('currentWeather'),
+        
+        // Story and logs
+        storyText: document.getElementById('storyText'),
+        eventLog: document.getElementById('eventLog'),
+        
+        // Action elements
+        actionButtons: document.getElementById('actionButtons'),
+        actionStatus: document.getElementById('actionStatus'),
+        
+        // Base/building elements
+        trailerStatus: document.getElementById('trailerStatus'),
+        trailerProgress: document.getElementById('trailerProgress'),
+        
+        // Game controls
+        saveGame: document.getElementById('saveGame'),
+        loadGame: document.getElementById('loadGame'),
+        autoSaveStatus: document.getElementById('autoSaveStatus')
+    };
+    
+    // Initialize action buttons
+    function initializeActions() {
+        const actionButtons = document.querySelectorAll('.action-btn');
+        
+        actionButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const actionType = button.dataset.action;
+                performAction(actionType);
+            });
+        });
+    }
+    
+    // Perform a player action
+    function performAction(actionType) {
+        // If there's already an action in progress or an event requiring choice
+        if (gameState.currentAction || gameState.activeEvent) {
+            return;
+        }
+        
+        const action = gameConfig.actions[actionType];
+        
+        // Check if player has enough resources
+        if (action.cost.energy && gameState.resources.energy < action.cost.energy) {
+            addLogMessage("Not enough energy to perform this action.");
+            return;
+        }
+        
+        // Deduct costs
+        if (action.cost.energy) {
+            updateResource('energy', -action.cost.energy);
+        }
+        
+        // Set current action
+        gameState.currentAction = actionType;
+        gameState.actionTimeRemaining = action.cost.time;
+        
+        // Update UI
+        updateActionStatus();
+        addLogMessage(`Started: ${action.name}`);
+        
+        // Disable action buttons during action
+        toggleActionButtons(false);
+    }
+    
+    // Complete an action
+    function completeAction() {
+        const action = gameConfig.actions[gameState.currentAction];
+        const success = Math.random() < action.successRate;
+        
+        if (success) {
+            // Calculate rewards
+            let rewardText = "";
+            
+            for (const [resource, range] of Object.entries(action.rewards)) {
+                const amount = Math.floor(Math.random() * (range[1] - range[0] + 1)) + range[0];
+                updateResource(resource, amount);
+                rewardText += `${amount} ${resource}, `;
+            }
+            
+            // Remove trailing comma and space
+            rewardText = rewardText.slice(0, -2);
+            
+            addLogMessage(`${action.name} completed! Gained: ${rewardText}.`);
+            updateStoryText(`You successfully ${action.name.toLowerCase()}. ${getActionResultText(gameState.currentAction)}`);
+        } else {
+            addLogMessage(`${action.name} failed.`);
+            updateStoryText(`You tried to ${action.name.toLowerCase()}, but were unsuccessful. ${getActionFailText(gameState.currentAction)}`);
+        }
+        
+        // Clear current action
+        gameState.currentAction = null;
+        gameState.actionTimeRemaining = 0;
+        
+        // Re-enable action buttons
+        toggleActionButtons(true);
+        updateActionStatus();
+    }
+    
+    // Generate descriptive text for action results
+    function getActionResultText(actionType) {
+        switch(actionType) {
+            case 'scavengeFood':
+                return "After searching through abandoned trailers and checking some wild plants, you managed to find some edible items that should keep hunger at bay for a while.";
+            case 'findWater':
+                return "You've found a source of relatively clean water. After boiling it, it should be safe to drink.";
+            case 'gatherWood':
+                return "The fallen branches and salvaged wood will be useful for repairs and keeping warm during the cold nights.";
+            case 'rest':
+                return "The rest has done you good. You feel more alert and your wounds seem to be healing.";
+            default:
+                return "";
+        }
+    }
+    
+    // Generate failure text for actions
+    function getActionFailText(actionType) {
+        switch(actionType) {
+            case 'scavengeFood':
+                return "The area has been picked clean, or perhaps the risk was too great. You return empty-handed and still hungry.";
+            case 'findWater':
+                return "All the obvious water sources are either dried up or too contaminated to be usable.";
+            case 'gatherWood':
+                return "The thorny overgrowth made it too dangerous to gather proper materials.";
+            case 'rest':
+                return "Your sleep was fitful and disturbed by strange noises outside.";
+            default:
+                return "";
+        }
+    }
+    
+    // Enable/disable action buttons
+    function toggleActionButtons(enabled) {
+        const buttons = document.querySelectorAll('.action-btn');
+        buttons.forEach(button => {
+            button.disabled = !enabled;
+        });
+    }
+    
+    // Update a resource value
+    function updateResource(resource, amount) {
+        gameState.resources[resource] += amount;
+        
+        // Ensure values don't go below 0 or above 100 for percentage-based resources
+        if (resource === 'health' || resource === 'energy') {
+            gameState.resources[resource] = Math.max(0, Math.min(100, gameState.resources[resource]));
+        } else {
+            gameState.resources[resource] = Math.max(0, gameState.resources[resource]);
+        }
+        
+        // Update UI
+        if (elements[resource]) {
+            elements[resource].textContent = Math.floor(gameState.resources[resource]);
+        }
+    }
+    
+    // Update action status display
+    function updateActionStatus() {
+        if (gameState.currentAction) {
+            const action = gameConfig.actions[gameState.currentAction];
+            elements.actionStatus.textContent = `${action.name} in progress... ${gameState.actionTimeRemaining} hours remaining`;
+        } else if (gameState.activeEvent) {
+            elements.actionStatus.textContent = "An event requires your attention!";
+        } else {
+            elements.actionStatus.textContent = "Ready for next action";
+        }
+    }
+    
+    // Add message to event log
+    function addLogMessage(message) {
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+        logEntry.textContent = `Day ${gameState.day}, ${gameState.timeOfDay}: ${message}`;
+        elements.eventLog.prepend(logEntry);
+        
+        // Limit log size
+        if (elements.eventLog.children.length > 100) {
+            elements.eventLog.removeChild(elements.eventLog.lastChild);
+        }
+    }
+    
+    // Update the story text area
+    function updateStoryText(text) {
+        elements.storyText.textContent = text;
+    }
+    
+    // Get time of day string based on hour
+    function getTimeOfDay(hour) {
+        if (hour >= 5 && hour < 8) return 'Dawn';
+        if (hour >= 8 && hour < 12) return 'Morning';
+        if (hour >= 12 && hour < 14) return 'Noon';
+        if (hour >= 14 && hour < 18) return 'Afternoon';
+        if (hour >= 18 && hour < 21) return 'Evening';
+        if (hour >= 21 || hour < 5) return 'Night';
+        return 'Unknown';
+    }
+    
+    // Change weather randomly
+    function changeWeather() {
+        const roll = Math.random();
+        let newWeather = 'overcast'; // Default
+        
+        let cumulativeChance = 0;
+        for (const [weather, chance] of Object.entries(gameConfig.weatherChances)) {
+            cumulativeChance += chance;
+            if (roll <= cumulativeChance) {
+                newWeather = weather;
+                break;
+            }
+        }
+        
+        const capitalizedWeather = newWeather.charAt(0).toUpperCase() + newWeather.slice(1);
+        
+        if (gameState.weather !== capitalizedWeather) {
+            gameState.weather = capitalizedWeather;
+            elements.currentWeather.textContent = gameState.weather;
+            addLogMessage(`Weather changed to ${gameState.weather}`);
+            
+            // Apply immediate weather effects
+            if (newWeather === 'rainy') {
+                updateResource('water', 1);
+                addLogMessage("You collected water from the rain.");
+            }
+        }
+    }
+    
+    // Consume resources (food, water) based on time
+    function consumeResources() {
+        const hour = gameState.hour;
+        
+        // Food consumption at meal times
+        if (gameConfig.timeProgression.mealTimes.includes(hour)) {
+            if (gameState.resources.food >= 1) {
+                updateResource('food', -1);
+                addLogMessage("You consumed 1 food.");
+            } else {
+                updateResource('health', -5);
+                addLogMessage("You had no food to eat. Your health decreased.");
+            }
+        }
+        
+        // Water consumption
+        if (gameConfig.timeProgression.drinkTimes.includes(hour)) {
+            if (gameState.resources.water >= 1) {
+                updateResource('water', -1);
+                addLogMessage("You consumed 1 water.");
+            } else {
+                updateResource('health', -8);
+                updateResource('energy', -10);
+                addLogMessage("You had no water to drink. Your health and energy decreased.");
+            }
+        }
+    }
+    
+    // Check for random events
+    function checkForEvents() {
+        // Don't trigger events if there's an active event or action
+        if (gameState.activeEvent || gameState.currentAction) {
+            return;
+        }
+        
+        // Filter events based on minimum day requirement
+        const eligibleEvents = gameConfig.events.filter(
+            event => gameState.day >= (event.minDay || 1)
+        );
+        
+        for (const event of eligibleEvents) {
+            if (Math.random() < event.chance) {
+                triggerEvent(event);
+                return; // Only trigger one event at a time
+            }
+        }
+    }
+    
+    // Trigger a game event
+    function triggerEvent(event) {
+        gameState.activeEvent = event;
+        
+        updateStoryText(event.description);
+        addLogMessage(`Event: ${event.name}`);
+        
+        // If the event has choices, create buttons
+        if (event.choices && event.choices.length > 0) {
+            createEventChoices(event);
+        } else if (event.effect) {
+            // If it's a simple event with effects, apply them
+            for (const [resource, amount] of Object.entries(event.effect)) {
+                if (resource in gameState.resources) {
+                    updateResource(resource, amount);
+                    addLogMessage(`Effect: ${amount > 0 ? '+' : ''}${amount} ${resource}`);
+                }
+            }
+            
+            // Clear the event after a delay
+            setTimeout(() => {
+                gameState.activeEvent = null;
+                updateActionStatus();
+            }, 3000);
+        }
+    }
+    
+    // Create buttons for event choices
+    function createEventChoices(event) {
+        const actionButtons = document.getElementById('actionButtons');
+        
+        // Clear existing buttons
+        actionButtons.innerHTML = '';
+        
+        // Create a button for each choice
+        event.choices.forEach((choice, index) => {
+            const button = document.createElement('button');
+            button.className = 'action-btn';
+            button.innerHTML = `
+                <div class="action-title">Option ${index + 1}</div>
+                <div class="action-desc">${choice.text}</div>
+            `;
+            
+            button.addEventListener('click', () => handleEventChoice(choice));
+            
+            actionButtons.appendChild(button);
+        });
+        
+        updateActionStatus();
+    }
+    
+    // Handle player's event choice
+    function handleEventChoice(choice) {
+        // Apply effects
+        if (choice.effect) {
+            for (const [resource, amount] of Object.entries(choice.effect)) {
+                updateResource(resource, amount);
+            }
+        }
+        
+        // Show outcome text
+        updateStoryText(choice.outcome);
+        addLogMessage(`You chose: ${choice.text}`);
+        
+        // Clear the event
+        gameState.activeEvent = null;
+        
+        // Restore normal action buttons
+        restoreActionButtons();
+    }
+    
+    // Restore normal action buttons after an event
+    function restoreActionButtons() {
+        const actionButtons = document.getElementById('actionButtons');
+        
+        // Clear existing buttons
+        actionButtons.innerHTML = '';
+        
+        // Recreate standard action buttons
+        for (const [key, action] of Object.entries(gameConfig.actions)) {
+            const button = document.createElement('button');
+            button.className = 'action-btn';
+            button.dataset.action = key;
+            button.innerHTML = `
+                <div class="action-title">${action.name}</div>
+                <div class="action-desc">${action.description}</div>
+                <div class="action-cost">${
+                    action.cost.energy ? `Energy: -${action.cost.energy} | ` : ''
+                }Time: ${action.cost.time}hrs</div>
+            `;
+            
+            button.addEventListener('click', () => performAction(key));
+            
+            actionButtons.appendChild(button);
+        }
+        
+        updateActionStatus();
+    }
+    
+    // Main game update function - called on each tick
+    function updateGame() {
+        if (!gameState.running) return;
+        
+        gameState.tickCounter++;
+        
+        // Advance time every 30 ticks (about 1 minute of real time = 1 hour game time)
+        if (gameState.tickCounter % 30 === 0) {
+            gameState.hour++;
+            
+            // Wrap to next day
+            if (gameState.hour >= 24) {
+                gameState.hour = 0;
+                gameState.day++;
+                addLogMessage(`Day ${gameState.day} has begun.`);
+                
+                // Daily weather change
+                changeWeather();
+            }
+            
+            // Update time of day
+            gameState.timeOfDay = getTimeOfDay(gameState.hour);
+            
+            // Update time display
+            elements.currentDay.textContent = gameState.day;
+            elements.currentTime.textContent = `${gameState.timeOfDay} (${gameState.hour}:00)`;
+            
+            // Resource consumption based on time
+            consumeResources();
+        }
+        
+        // Process current action if any
+        if (gameState.currentAction) {
+            // Decrease action time every 15 ticks (roughly 30 seconds real time = 1 hour game time)
+            if (gameState.tickCounter % 15 === 0) {
+                gameState.actionTimeRemaining--;
+                updateActionStatus();
+                
+                if (gameState.actionTimeRemaining <= 0) {
+                    completeAction();
+                }
+            }
+        } else if (!gameState.activeEvent) {
+            // Only check for random events if no action is in progress and no event is active
+            checkForEvents();
+        }
+        
+        // Apply gradual resource decay every 10 ticks
+        if (gameState.tickCounter % 10 === 0) {
+            for (const [resource, rate] of Object.entries(gameConfig.decayRates)) {
+                if (gameState.resources[resource] > 0) {
+                    updateResource(resource, -rate);
+                }
+            }
+        }
+        
+        // Update health based on conditions every 20 ticks
+        if (gameState.tickCounter % 20 === 0) {
+            if (gameState.resources.food <= 0 && gameState.resources.water <= 0) {
+                updateResource('health', -1); // Deteriorating health if no food or water
+            }
+        }
+        
+        // Game over check
+        if (gameState.resources.health <= 0) {
+            gameState.running = false;
+            updateStoryText("Your health has deteriorated to a critical level. You collapse in your trailer, too weak to continue. The Thornyvale has claimed another victim.");
+            addLogMessage("GAME OVER: You have died.");
+            toggleActionButtons(false);
+        }
+        
+        // Auto-save every 200 ticks (roughly every 6-7 minutes)
+        if (gameState.tickCounter % 200 === 0) {
+            autoSave();
+        }
+    }
+    
+    // Save game to localStorage
+    function saveGame() {
+        try {
+            localStorage.setItem('thornyvaleGameSave', JSON.stringify(gameState));
+            elements.autoSaveStatus.textContent = 'Game saved!';
+            
+            // Reset the status after a delay
+            setTimeout(() => {
+                elements.autoSaveStatus.textContent = 'Auto-saving...';
+            }, 2000);
+            
+            return true;
+        } catch (error) {
+            console.error('Save failed:', error);
+            elements.autoSaveStatus.textContent = 'Save failed!';
+            return false;
+        }
+    }
+    
+    // Auto-save function
+    function autoSave() {
+        saveGame();
+        gameState.lastSave = Date.now();
+    }
+    
+    // Load game from localStorage
+    function loadGame() {
+        try {
+            const savedGame = localStorage.getItem('thornyvaleGameSave');
+            
+            if (savedGame) {
+                // Parse the saved state and merge it with current state
+                const savedState = JSON.parse(savedGame);
+                Object.assign(gameState, savedState);
+                
+                // Update all UI elements
+                updateAllUIElements();
+                
+                addLogMessage("Game loaded successfully.");
+                elements.autoSaveStatus.textContent = 'Game loaded!';
+                
+                // Reset status after delay
+                setTimeout(() => {
+                    elements.autoSaveStatus.textContent = 'Auto-saving...';
+                }, 2000);
+                
+                return true;
+            } else {
+                addLogMessage("No saved game found.");
+                elements.autoSaveStatus.textContent = 'No save found!';
+                return false;
+            }
+        } catch (error) {
+            console.error('Load failed:', error);
+            elements.autoSaveStatus.textContent = 'Load failed!';
+            return false;
+        }
+    }
+    
+    // Update all UI elements to match game state
+    function updateAllUIElements() {
+        // Update resource displays
+        for (const resource in gameState.resources) {
+            if (elements[resource]) {
+                elements[resource].textContent = Math.floor(gameState.resources[resource]);
+            }
+        }
+        
+        // Update time and day
+        elements.currentDay.textContent = gameState.day;
+        elements.currentTime.textContent = `${gameState.timeOfDay} (${gameState.hour}:00)`;
+        elements.currentWeather.textContent = gameState.weather;
+        
+        // Update trailer status
+        elements.trailerStatus.textContent = getTrailerStatusText();
+        elements.trailerProgress.style.width = `${gameState.trailerRepair}%`;
+        
+        // Restore action buttons if no active action or event
+        if (!gameState.currentAction && !gameState.activeEvent) {
+            restoreActionButtons();
+        }
+        
+        // If there's an active action or event
+        if (gameState.currentAction) {
+            updateActionStatus();
+            toggleActionButtons(false);
+        } else if (gameState.activeEvent) {
+            if (gameState.activeEvent.choices) {
+                createEventChoices(gameState.activeEvent);
+            }
+        }
+    }
+    
+    // Get descriptive text for trailer status
+    function getTrailerStatusText() {
+        const repair = gameState.trailerRepair;
+        
+        if (repair < 20) return "Dilapidated";
+        if (repair < 40) return "Damaged";
+        if (repair < 60) return "Weathered";
+        if (repair < 80) return "Stable";
+        return "Well-Maintained";
+    }
+    
+    // Check for existing save and offer to load
+    function checkForExistingSave() {
+        if (localStorage.getItem('thornyvaleGameSave')) {
+            const shouldLoad = confirm("A saved game was found. Would you like to load it?");
+            if (shouldLoad) {
+                loadGame();
+            }
+        }
+    }
+    
+    // Set up event listeners
+    function setupEventListeners() {
+        // Save and load buttons
+        elements.saveGame.addEventListener('click', saveGame);
+        elements.loadGame.addEventListener('click', loadGame);
+        
+        // Initialize action buttons
+        initializeActions();
+    }
+    
+    // Start the game
+    function startGame() {
+        // Initialize game
+        setupEventListeners();
+        checkForExistingSave();
+        
+        // Set game running state
+        gameState.running = true;
+        gameState.lastUpdated = Date.now();
+        
+        // Update initial UI
+        updateAllUIElements();
+        
+        // Start the game loop - update every 2 seconds
+        setInterval(updateGame, gameConfig.timeProgression.tickInterval);
+        
+        addLogMessage("Welcome to Thornyvale. Your survival begins now.");
+    }
+    
+    // Start the game when page is loaded
+    startGame();
+});
+    </script>
+</body>
+</html>
